@@ -50,7 +50,7 @@ def set_params(params, mode, gamma=None, lr=None, folder_name=None):
     elif mode == 'hra+1':
         params['gamma'] = .99
         params['learning_rate'] = .001
-        params['remove_features'] = True
+        params['remove_features'] = False # 元のコードはTrue
         params['use_mean'] = True
         params['use_hra'] = True
     if gamma is not None:
@@ -100,3 +100,32 @@ class Font:
     bold = '\033[1m'
     underline = '\033[4m'
     end = '\033[0m'
+
+class ExperienceReplay(object):
+    def __init__(self, max_size=100, history_len=1, state_shape=None, action_dim=1, reward_dim=1, state_dtype=np.uint8,
+                 rng=None):
+        if rng is None:
+            # random number generator
+            self.rng = np.random.RandomState(1234)
+        else:
+            self.rng = rng
+        self.size = 0
+        self.max_size = max_size
+        self.history_len = history_len
+        self.state_shape = state_shape
+        self.action_dim = action_dim
+        self.reward_dim = reward_dim  # 10で入っている？
+        self.state_dtype = state_dtype
+        self._minibatch_size = None
+
+        self.states = np.zeros([self.max_size] + list(self.state_shape), dtype=self.state_dtype)
+        self.terms = np.zeros(self.max_size, dtype='bool')
+
+        self.actions = np.zeros(self.max_size, dtype='int32')
+
+        if self.reward_dim == 1:
+            self.rewards = np.zeros(self.max_size, dtype='float32')
+        else:
+            self.rewards = np.zeros((self.max_size, self.reward_dim), dtype='float32')
+
+

@@ -6,26 +6,20 @@ import tensorflow as tf
 from copy import deepcopy
 
 
-from utils import flatten, slice_tensor_tensor
+from utils import ExperienceReplay, flatten, slice_tensor_tensor
 from dqn.model import build_dense, build_cnn
 import dqn.experiment as expt
 from environment.room_placement import RoomPlacement
 
 floatX = 'float32'
 
-INITIAL_EXPLORATION = 1.0
-FINAL_EXPLORATION = 0.05
-EXPLORATION_STEPS = 3000
-
 class AI:
     def __init__(self, state_shape, nb_actions, action_dim, reward_dim, history_len=1, gamma=.99,
-                 learning_rate=0.00025, epsilon=1.0, final_epsilon=0.05, test_epsilon=0.001,
-                minibatch_size=32, replay_start=20000, replay_max_size=100, replay_memory_size=50000,
+                 learning_rate=0.00025, epsilon=0.05, final_epsilon=0.05, test_epsilon=0.001,
+                minibatch_size=32, replay_max_size=100, replay_memory_size=50000,
                  update_freq=50, learning_frequency=1,
                  num_units=250, remove_features=False, use_mean=False, use_hra=True, rng=None):
         self.rng = rng
-        self.env = RoomPlacement()
-        self.enable_actions = self.env.enable_actions
         self.history_len = history_len
         # self.state_shape = [1] + state_shape # この操作が謎　
         self.state_shape = state_shape
@@ -36,8 +30,10 @@ class AI:
         self.learning_rate = learning_rate
         self.learning_rate_start = learning_rate
 
-        self.epsilon = INITIAL_EXPLORATION
-        self.epsilon_step = (INITIAL_EXPLORATION - FINAL_EXPLORATION) / EXPLORATION_STEPS
+        self.epsilon = epsilon
+        self.start_epsilon = epsilon
+        self.test_epsilon = test_epsilon
+        self.final_epsilon = final_epsilon
 
         self.minibatch_size = minibatch_size
         self.update_freq = update_freq
@@ -47,24 +43,26 @@ class AI:
         self.use_hra = use_hra
         self.remove_features = remove_features
         self.learning_frequency = learning_frequency
-        self.replay_start = replay_start
         self.replay_max_size = replay_max_size
         self.replay_memory_size = replay_memory_size
-        
-        # replay memory
-        self.D = deque(maxlen=self.replay_memory_size)
-        self.temp_D = deque(maxlen=self.replay_memory_size)
-        self.temp_rot_D =deque(maxlen=self.replay_memory_size)
-        
-        # ここでtransitionsを保持
-        
+
+        # ここでreplay memory を保持
+        # self.D = deque(maxlen=self.replay_memory_size)
+        # self.temp_D = deque(maxlen=self.replay_memory_size)
+        # self.temp_rot_D =deque(maxlen=self.replay_memory_size)
+
+        self.transitions = ExperienceReplay(max_size=self.replay_max_size, history_len=history_len, rng=self.rng,
+                                            state_shape=state_shape, action_dim=action_dim, reward_dim=reward_dim)
+
         # ネットワークの構築
         self.networks = [self._build_network() for _ in range(self.reward_dim)]
         self.target_networks = [self._build_network() for _ in range(self.reward_dim)]
 
-        # ここでパラメータの保持
+        # パラメータの保持 reward_dim個のネットワークにある各層の重みをflatten
+        self.all_params = flatten([network.trainable_weights for network in self.networks])
+        self.all_target_params = flatten([target_network.trainable_weights for target_network in self.target_networks])
 
-        # 重みの更新
+        # target_networksの重みを更新する．
         self.weight_transfer(from_model=self.networks, to_model=self.target_networks)
 
         # ネットワークのコンパイル lossなどの定義
@@ -75,6 +73,7 @@ class AI:
     def _build_network(self):
         # model.build_dense　→　浅いニューラルネットを構築
         # model.build_cnn　→　CNNを構築
+
         return build_cnn(self.state_shape, int(self.nb_units / self.reward_dim),
                            self.nb_actions, self.reward_dim, self.remove_features)
 
@@ -106,7 +105,7 @@ class AI:
             local_s =s
             local_s2 = s2
 
-            # remove_features
+            # remove_features　→　未実装
 
             # 推論値　s: Stをinputとして
             qs.append(self.networks[i](local_s))

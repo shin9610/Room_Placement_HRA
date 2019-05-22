@@ -25,8 +25,8 @@ def build_dense(state_shape, nb_units, nb_actions, nb_channels, remove_features=
 
 def build_cnn(state_shape, nb_units, nb_actions, nb_channels, remove_features=False):
     # CNN版ではない　→　修正必要
-    if remove_features:
-        state_shape = state_shape[: -1] + [state_shape[-1] - nb_channels + 1]
+    # if remove_features:
+    #     state_shape = state_shape[: -1] + [state_shape[-1] - nb_channels + 1]
 
     # 入力層
     input_dim = tuple(state_shape)

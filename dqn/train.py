@@ -12,8 +12,9 @@ np.set_printoptions(suppress=True, linewidth=200, precision=2)
 floatX = 'float32'
 
 def worker(params):
-    # 初期座標値をランダムにする
-    random_state = None
+    # random num generator
+    np.random.seed(seed=params['random_seed'])
+    random_state = np.random.RandomState(params['random_seed'])
 
     # RoomPlacement class : 室配置の環境と，その更新を定義するクラス
     env = RoomPlacement()
