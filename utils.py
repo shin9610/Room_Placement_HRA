@@ -110,6 +110,9 @@ class ExperienceReplay(object):
         else:
             self.rng = rng
         self.size = 0
+        self.head = 0
+        self.tail = 0
+        self.size = 0
         self.max_size = max_size
         self.history_len = history_len
         self.state_shape = state_shape
@@ -127,5 +130,16 @@ class ExperienceReplay(object):
             self.rewards = np.zeros(self.max_size, dtype='float32')
         else:
             self.rewards = np.zeros((self.max_size, self.reward_dim), dtype='float32')
+
+    def add(self, s, a, r, t):
+        self.states[self.tail] = s
+        self.actions[self.tail] = a
+        self.rewards[self.tail] = r
+        self.terms[self.tail] = t
+        self.tail = (self.tail + 1) % self.max_size
+        if self.size == self.max_size:
+            self.head = (self.head + 1) % self.max_size
+        else:
+            self.size += 1
 
 

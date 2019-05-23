@@ -31,8 +31,9 @@ class RoomPlacement:
         self.reward_scheme = {'connect': +1.0, 'shape': +1.0}
         self.reward_len = len(self.reward_scheme)
         self.reward_channels = []
-        self.n_steps = 1500
-        self.terminal = False
+        self.step_id = 0
+        self.game_length = 1500
+        self.game_over = False
 
         # 室の初期設定
         self.random_flag = False
@@ -229,9 +230,17 @@ class RoomPlacement:
         state_4chan = tuple((temp_my, temp_your, temp_other, temp_site))
         return state_4chan
 
-    def update(self, action, now_agent, step):
+    def step(self, action, now_agent):
+        # stepが終了ならば
+        if self.step_id >= self.game_length - 1:
+            self.game_over = True
 
-        if step == 0:
+            # head_reward = np.zeros(len(self.reward_scheme), dtype=np.float32)
+            # # new_obs, reward, game_over, infoを返す
+            # return self.state_4chan_t, 0. , self.game_over, {'head_reward': head_reward}
+
+        # step途中の処理
+        if self.step_id == 0:
             self.state_t = copy.deepcopy(self.state_0)
         else:
             self.state_t = self.state_t_1
@@ -256,13 +265,13 @@ class RoomPlacement:
         # アスペクト比判定
         self.aspect = self.aspect_search(now_agent)
 
-        # 報酬判定
-        self.reward, self.reward_channels  = self.reward_condition(now_agent)
+        # 報酬判定 reward: 報酬の合計，channels: 報酬のチャネル
+        # self.reward, self.reward_channels  = self.reward_condition(now_agent)
+        self.reward, self.reward_channels = self.reward_condition(now_agent)
 
-        # 終了判定
-        if step == self.n_steps:
-            self.terminal = True
-            
+        self.step_id += 1
+
+
     def update_move(self, action, now_agent):
         temp = np.zeros((self.col, self.row))
 
@@ -691,15 +700,15 @@ class RoomPlacement:
 
     def observe(self):
         # 現エージェントの次の状態，次エージェントの次の状態を観測して返す
-        return self.state_4chan_t, self.next_state_4chan_t, self.reward, self.reward_channels, self.terminal
+        return self.state_4chan_t, self.next_state_4chan_t, self.reward, self.reward_channels, self.game_over
 
-    def execute_action(self, action, now_agent, step):
-        self.update(action, now_agent, step)
+    def execute_action(self, action, now_agent):
+        self.step(action, now_agent)
 
     def reset(self):
         self.reward = 0
-        self.reward_channels = []
-        self.terminal = False
+        self.reward_channels = np.zeros(len(self.reward_scheme), dtype=np.float32)
+        self.game_over = False
 
         # 現エージェントの状態の初期化
         # self.state_t = self.state_0

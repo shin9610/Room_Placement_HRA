@@ -126,25 +126,31 @@ class AI:
         target_updates = []
         for network, target_network in zip(self.networks, self.target_networks):
             for target_weight, network_weight in zip(target_network.trainable_weights, network.trainable_weights):
-                target_updates.append(K.update(target_weight, network_weight))
+                target_updates.append(K.update(target_weight, network_weight)) # from, to
 
         # kerasの関数のインスタンスを作成　updates: 更新する命令のリスト．
         self._train_on_batch = K.function(inputs=[s, a, r, s2, t], outputs=[costs], updates=updates)
         self.predict_network = K.function(inputs=[s], outputs=qs)
-        self.predict_target_network = K.function(inputs=[s], outputs=q2s)
         self.update_weights = K.function(inputs=[], outputs=[], updates=target_updates)
         
     def get_max_action(self, states):
+        # stateのreshape: 未実装
+        # states = self._reshape(states)
         q = np.array(self.predict_network([states]))
         q = np.sum(q, axis=0)
         return np.argmax(q, axis=1)
     
     def get_action(self, states, evaluate):
-        if np.random.rand() <= self.epsilon:
-            return np.random.choice(self.nb_actions)
-
+        eps = self.epsilon if not evaluate else self.test_epsilon
+        if self.rng.binomial(1, eps):
+            return self.rng.randint(self.nb_actions)
         else:
             return self.get_max_action(states=states)
+
+
+
+
+
 
     def store_exp(self, reward_cnt, average_reward_cnt):
         if reward_cnt > 100 and reward_cnt > average_reward_cnt:

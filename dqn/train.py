@@ -36,7 +36,7 @@ def worker(params):
                 remove_features=params['remove_features'], use_mean=params['use_mean'], use_hra=params['use_hra'])
 
     # DQNExperiment class : 学習を試行するクラス
-    expt = DQNExperiment(env=env, ai=ai, episode_max_len=params['episode_max_len'], step_max_len=params['step_max_len'],
+    expt = DQNExperiment(env=env, ai=ai, episode_max_len=params['episode_max_len'],
                              history_len=params['history_len'], max_start_nullops=params['max_start_nullops'],
                              replay_min_size=params['replay_min_size'], folder_location=params['folder_location'],
                              folder_name=params['folder_name'], testing=params['test'], score_window_size=100,
@@ -46,7 +46,7 @@ def worker(params):
     if not params['test']:
         with open(expt.folder_name + '/config.yaml', 'w') as y:
             yaml.safe_dump(params, y)  # saving params for future reference
-        expt.start_training(total_eps=params['total_eps'], eps_per_epoch=params['eps_per_epoch'],
+        expt.do_training(total_eps=params['total_eps'], eps_per_epoch=params['eps_per_epoch'],
                              eps_per_test=params['eps_per_test'], is_learning=True, is_testing=True)
     else:
         raise NotImplementedError

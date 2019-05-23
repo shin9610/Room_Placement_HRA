@@ -4,7 +4,7 @@ from utils import Font, plot_and_write, create_folder
 import copy
 
 class DQNExperiment(object):
-    def __init__(self, env, ai, episode_max_len, step_max_len, history_len=1, max_start_nullops=1, replay_min_size=0,
+    def __init__(self, env, ai, episode_max_len, history_len=1, max_start_nullops=1, replay_min_size=0,
                  score_window_size=100, rng=None, folder_location='/experiments/', folder_name='expt', testing=False):
         self.rng = rng
         self.fps = 0
@@ -21,7 +21,6 @@ class DQNExperiment(object):
         if not testing:
             self.folder_name = create_folder(folder_location, folder_name)
         self.episode_max_len = episode_max_len
-        self.step_max_len = step_max_len
         self.num_agents = env.n_agents
         self.score_agent_window = np.zeros(score_window_size)
         self.steps_agent_window = np.zeros(score_window_size)
@@ -59,9 +58,10 @@ class DQNExperiment(object):
 
             # 学習が終了したなら
             if not is_learning:
-                #
-                self.score_agent_window = self._update_window(self.score_agent_window, self.score_agent)
-                self.steps_agent_window = self._update_window(self.steps_agent_window, self.last_episode_steps)
+                # 元コードの処理が不明　→　passで
+                # self.score_agent_window = self._update_window(self.score_agent_window, self.score_agent)
+                # self.steps_agent_window = self._update_window(self.steps_agent_window, self.last_episode_steps)
+                pass
             else:
                 # episode_numを足す
                 self.episode_num += 1
@@ -69,146 +69,89 @@ class DQNExperiment(object):
 
     def _do_episode(self, is_learning=True):
         rewards = []
+
         self.env.reset()
+        self._reset()
         term = False
+
         start_time = time.time()
         
         # eps中において，termに達するまでstepを行う
         while not term:
-            reward, term = self._step(evaluate=not is_learning)
-            rewards.append(reward)
+            # 各agent順に行動
+            for now_agent in range(self.env.n_agents):
+                reward, term = self._step(now_agent, evaluate=not is_learning)
+                rewards.append(reward)
+                self.score_agent += reward
 
-            # replayのminより経験の数が多い　＋　学習フラグあり　＋　replayの頻度
-            if self.ai.transitions.size >= self.replay_min_size and is_learning and \
-                    self.last_episode_steps % self.ai.learning_frequency == 0:
+            if term == True:
+                # replayのminより経験の数が多い　＋　学習フラグあり　＋　replayの頻度
+                if self.ai.transitions.size >= self.replay_min_size and is_learning and \
+                        self.last_episode_steps % self.ai.learning_frequency == 0:
 
-                # 学習を行う →　learn()　→　train_on_batch()　→　_train_on_batch()
-                self.ai.learn()
+                    # 学習を行う →　learn()　→　train_on_batch()　→　_train_on_batch()
+                    self.ai.learn()
 
-            self.score_agent += reward
+            # # エピソード中の最大stepまで達したら
+            # if not term and self.last_episode_steps >= self.episode_max_len:
+            #     print('Reaching maximum number of steps in the current episode.')
+            #     term = True
 
-            # エピソード中の最大stepまで達したら
-            if not term and self.last_episode_steps >= self.episode_max_len:
-                print('Reaching maximum number of steps in the current episode.')
-                term = True
+        # self.fps = int(self.last_episode_steps / max(0.1, (time.time() - start_time)))
                 
         return rewards
 
-        
-    def _step(self, evaluate=False):
-        # stepを足す
+    def _reset(self):
+        self.last_episode_steps = 0
+        self.score_agent = 0
+
+        assert self.max_start_nullops >= self.history_len or self.max_start_nullops == 0
+
+        # # max_start_nullops :役割が不明
+        # if self.max_start_nullops != 0:
+        #     num_nullops = self.rng.randint(self.history_len, self.max_start_nullops)
+        #     for i in range(num_nullops - self.history_len):
+        #         self.env.step(0)
+        #
+        # # この操作も不明
+        # for i in range(self.history_len):
+        #     if i > 0:
+        #         self.env.step(0)
+        #     obs = self.env.get_state()
+        #     if obs.ndim == 1 and len(self.env.state_shape) == 2:
+        #         obs = obs.reshape(self.env.state_shape)
+        #     self.last_state[i] = obs
+
+    def _step(self, now_agent, evaluate=False):
         self.last_episode_steps += 1
-        
-        action = self.ai.get_action(self.last_state, evaluate)
 
-        # env classのstepから、tにおける情報を受ける
-        new_obs, reward, game_over, info = self.env.step(action, now_agetn, step=self.last_episode_steps)
-        
-        
-    def start_training(self, total_eps=5000, eps_per_epoch=100, eps_per_test=100, is_learning=True, is_testing=False):
-        # グラフ描画用のリスト
-        n_episode_list = []
-        ave_reward_list = []
+        # 初めのステップの時の初期化
+        if self.last_episode_steps == 1:
+            state_t_1, next_state_t_1, reward_t, reward_channels, game_over = self.env.observe()
 
-        # total eps に達するまでepsを行う
-        while self.episode_num < self.episode_max_len:
-            self.episode_num += 1
-            print(Font.yellow + Font.bold + 'Training ... ' + str(self.episode_num) + '/' + str(self.episode_max_len) + Font.end,
-                  end='\n')
+        state_t = copy.deepcopy(next_state_t_1)
 
-            cnt_step = 0
-            cnt_reward = 0
+        # 行動選択　→　last_stateをどこから持ってくるか
+        action = self.ai.get_action(state_t, evaluate)
 
-            loss = 0
-            Q_max = 0
+        # 環境にて行動を実行
+        self.env.execute_action(action, now_agent)
 
-            steps =[]
-            rewards = []
+        # new_obs, reward, game_over, info = self.env.observe
+        state_t_1, next_state_t_1, reward_t, reward_channels, game_over = self.env.observe()
 
-            # 報酬の最大と平均を出力する変数
-            max_reward = 0
-            ave_reward = 0
-            temp_reward = 0
-            temp_ave_reward = 0
+        if not evaluate:
+            # store memory　→　Dで実装しなおしてもよい
+            self.ai.transitions.add(s=self.last_state[-1].astype('float32'), a=action, r=reward_channels, t=game_over)
+            self.total_training_steps += 1
 
-            self.env.reset()
-            start_time = time.time()
+        return reward_t, game_over
 
-            # 環境の観測．今のエージェントのstate_t+1, 次のエージェントのstate_t+1
-            state_t_1, next_state_t_1, reward_t, reward_t_chan, terminal = self.env.observe()
-
-            # eps中において，termに達するまでstepを行う
-            while not terminal:
-                for now_agent in range(self.num_agents):
-                    # 前のエージェントのstate_t+1で今のstate_tを初期化
-                    state_t = copy.deepcopy(next_state_t_1)
-
-                    # 環境にて行動を選択
-                    action_t = self.ai.get_action(state_t, evaluate=not is_learning)
-
-                    # 環境にて行動を実行
-                    self.env.execute_action(action_t, now_agent, cnt_step)
-
-                    # 環境の観測
-                    state_t_1, next_state_t_1, reward_t, reward_t_chan, terminal = self.env.observe()
-
-                    # 経験を一時蓄積する
-                    self.ai.store_temp_exp(state_t, action_t, reward_t_chan, state_t_1, terminal)
-
-                    cnt_step += 1
-                    cnt_reward += reward_t
-
-                    if terminal:
-                        print('cnt_reward: ' + str(cnt_reward))
-                        tart_replay = False
-
-                        # 平均値出力用のtemp
-                        temp_reward += cnt_reward
-
-                        # rewardの平均値を出力　→　最大ならば更新
-                        div = 20
-                        if self.episode_num % div == 0:
-                            temp_ave_reward = temp_reward / div
-                            if temp_reward / div > ave_reward:
-                                ave_reward = temp_reward / div
-                                print("average_reward: " + str(ave_reward))
-                            # グラフ出力用の変数
-                            n_episode_list.append(self.episode_num)
-                            ave_reward_list.append(temp_ave_reward)
-                            temp_reward = 0
-
-                        # rewardの最大値を出力
-                        if cnt_reward > max_reward:
-                            max_reward = cnt_reward
-                            print("max_reward: " + str(max_reward))
-
-                        # store，Dへの蓄積数が一定数を超えるとフラグを返す
-                        start_replay = self.ai.store_exp(cnt_reward, ave_reward)
-
-                        # start_replayフラグなら
-                        if start_replay:
-                            # target_update
-                            if self.episode_num % self.ai.update_freq == 0:
-                                # agent.end_session()
-                                self.ai.update_weights([])
-                                print('update_target_mode')
-
-                            # 探索の閾値を更新
-                            self.ai.update_exploration()
-
-                            # exp_replay
-                            # agent.experience_replay(episode)
-                            print('exp_replay')
-
-                            # 複数回exp_replay
-                            for replay_num in range(10):
-                                # print('---: ' + str(replay_num) + 'exp_replay---')
-                                self.ai.experience_replay()
-                                if replay_num == 9:
-                                    break
-
-                        break
-                    
+    @staticmethod
+    def _update_window(window, new_value):
+        window[:-1] = window[1:]
+        window[-1] = new_value
+        return window
                     
                     
                     
