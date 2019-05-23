@@ -47,9 +47,9 @@ class AI:
         self.replay_memory_size = replay_memory_size
 
         # ここでreplay memory を保持
-        # self.D = deque(maxlen=self.replay_memory_size)
-        # self.temp_D = deque(maxlen=self.replay_memory_size)
-        # self.temp_rot_D =deque(maxlen=self.replay_memory_size)
+        self.D = deque(maxlen=self.replay_memory_size)
+        self.temp_D = deque(maxlen=self.replay_memory_size)
+        self.temp_rot_D =deque(maxlen=self.replay_memory_size)
 
         self.transitions = ExperienceReplay(max_size=self.replay_max_size, history_len=history_len, rng=self.rng,
                                             state_shape=state_shape, action_dim=action_dim, reward_dim=reward_dim)

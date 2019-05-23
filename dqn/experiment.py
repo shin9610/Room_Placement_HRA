@@ -99,6 +99,7 @@ class DQNExperiment(object):
                     # store memory　→　Dで実装しなおしてもよい
                     self.ai.transitions.add(s=self.last_state[-1].astype('float32'), a=action, r=reward_channels,
                                             t=game_over)
+                    self.ai.store_temp_exp(state_t, action, reward_channels, state_t_1, game_over)
                     self.total_training_steps += 1
 
                 rewards.append(reward_t)
