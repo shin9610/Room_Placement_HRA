@@ -67,24 +67,44 @@ class DQNExperiment(object):
                 self.episode_num += 1
         return np.mean(scores), np.mean(steps)
 
-    def _do_episode(self, is_learning=True):
+    def _do_episode(self, is_learning=True, evaluate=False):
         rewards = []
 
         self.env.reset()
         self._reset()
-        term = False
+        game_over = False
 
         start_time = time.time()
-        
+
+        # 環境の観測
+        state_t_1, next_state_t_1, reward_t, reward_channels, game_over = self.env.observe()
+
         # eps中において，termに達するまでstepを行う
-        while not term:
+        while not game_over:
             # 各agent順に行動
             for now_agent in range(self.env.n_agents):
-                reward, term = self._step(now_agent, evaluate=not is_learning)
-                rewards.append(reward)
-                self.score_agent += reward
+                self.last_episode_steps += 1
+                state_t = copy.deepcopy(next_state_t_1)
 
-            if term == True:
+                # 行動選択　→　last_stateをどこから持ってくるか
+                action = self.ai.get_action(state_t, evaluate)
+
+                # 環境にて行動を実行
+                self.env.execute_action(action, now_agent)
+
+                # 環境の観測
+                state_t_1, next_state_t_1, reward_t, reward_channels, game_over = self.env.observe()
+
+                if not evaluate:
+                    # store memory　→　Dで実装しなおしてもよい
+                    self.ai.transitions.add(s=self.last_state[-1].astype('float32'), a=action, r=reward_channels,
+                                            t=game_over)
+                    self.total_training_steps += 1
+
+                rewards.append(reward_t)
+                self.score_agent += reward_t
+
+            if game_over == True:
                 # replayのminより経験の数が多い　＋　学習フラグあり　＋　replayの頻度
                 if self.ai.transitions.size >= self.replay_min_size and is_learning and \
                         self.last_episode_steps % self.ai.learning_frequency == 0:
@@ -122,30 +142,30 @@ class DQNExperiment(object):
         #         obs = obs.reshape(self.env.state_shape)
         #     self.last_state[i] = obs
 
-    def _step(self, now_agent, evaluate=False):
-        self.last_episode_steps += 1
-
-        # 初めのステップの時の初期化
-        if self.last_episode_steps == 1:
-            state_t_1, next_state_t_1, reward_t, reward_channels, game_over = self.env.observe()
-
-        state_t = copy.deepcopy(next_state_t_1)
-
-        # 行動選択　→　last_stateをどこから持ってくるか
-        action = self.ai.get_action(state_t, evaluate)
-
-        # 環境にて行動を実行
-        self.env.execute_action(action, now_agent)
-
-        # new_obs, reward, game_over, info = self.env.observe
-        state_t_1, next_state_t_1, reward_t, reward_channels, game_over = self.env.observe()
-
-        if not evaluate:
-            # store memory　→　Dで実装しなおしてもよい
-            self.ai.transitions.add(s=self.last_state[-1].astype('float32'), a=action, r=reward_channels, t=game_over)
-            self.total_training_steps += 1
-
-        return reward_t, game_over
+    # def _step(self, now_agent, evaluate=False):
+    #     self.last_episode_steps += 1
+    #
+    #     # 初めのステップの時の初期化
+    #     if self.last_episode_steps == 1:
+    #         state_t_1, next_state_t_1, reward_t, reward_channels, game_over = self.env.observe()
+    #
+    #     state_t = copy.deepcopy(next_state_t_1)
+    #
+    #     # 行動選択　→　last_stateをどこから持ってくるか
+    #     action = self.ai.get_action(state_t, evaluate)
+    #
+    #     # 環境にて行動を実行
+    #     self.env.execute_action(action, now_agent)
+    #
+    #     # new_obs, reward, game_over, info = self.env.observe
+    #     state_t_1, next_state_t_1, reward_t, reward_channels, game_over = self.env.observe()
+    #
+    #     if not evaluate:
+    #         # store memory　→　Dで実装しなおしてもよい
+    #         self.ai.transitions.add(s=self.last_state[-1].astype('float32'), a=action, r=reward_channels, t=game_over)
+    #         self.total_training_steps += 1
+    #
+    #     return reward_t, game_over
 
     @staticmethod
     def _update_window(window, new_value):
