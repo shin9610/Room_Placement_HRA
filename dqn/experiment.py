@@ -97,9 +97,9 @@ class DQNExperiment(object):
 
                 if not evaluate:
                     # store memory　→　Dで実装しなおしてもよい
-                    self.ai.transitions.add(s=self.last_state[-1].astype('float32'), a=action, r=reward_channels,
-                                            t=game_over)
-                    self.ai.store_temp_exp(state_t, action, reward_channels, state_t_1, game_over)
+                    # self.ai.transitions.add(s=self.last_state[-1].astype('float32'), a=action, r=reward_channels,
+                    #                         t=game_over)
+                    self.ai.transitions.store_temp_exp(np.array((state_t)), action, reward_channels, np.array((state_t_1)), game_over)
                     self.total_training_steps += 1
 
                 rewards.append(reward_t)
@@ -142,31 +142,6 @@ class DQNExperiment(object):
         #     if obs.ndim == 1 and len(self.env.state_shape) == 2:
         #         obs = obs.reshape(self.env.state_shape)
         #     self.last_state[i] = obs
-
-    # def _step(self, now_agent, evaluate=False):
-    #     self.last_episode_steps += 1
-    #
-    #     # 初めのステップの時の初期化
-    #     if self.last_episode_steps == 1:
-    #         state_t_1, next_state_t_1, reward_t, reward_channels, game_over = self.env.observe()
-    #
-    #     state_t = copy.deepcopy(next_state_t_1)
-    #
-    #     # 行動選択　→　last_stateをどこから持ってくるか
-    #     action = self.ai.get_action(state_t, evaluate)
-    #
-    #     # 環境にて行動を実行
-    #     self.env.execute_action(action, now_agent)
-    #
-    #     # new_obs, reward, game_over, info = self.env.observe
-    #     state_t_1, next_state_t_1, reward_t, reward_channels, game_over = self.env.observe()
-    #
-    #     if not evaluate:
-    #         # store memory　→　Dで実装しなおしてもよい
-    #         self.ai.transitions.add(s=self.last_state[-1].astype('float32'), a=action, r=reward_channels, t=game_over)
-    #         self.total_training_steps += 1
-    #
-    #     return reward_t, game_over
 
     @staticmethod
     def _update_window(window, new_value):

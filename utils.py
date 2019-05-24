@@ -11,6 +11,8 @@ from keras import backend as K
 mpl.use('Agg')
 import matplotlib.pyplot as plt
 import tensorflow as tf
+from collections import deque
+
 from keras.models import model_from_config
 
 
@@ -121,6 +123,11 @@ class ExperienceReplay(object):
         self.state_dtype = state_dtype
         self._minibatch_size = None
 
+        # ここでreplay memory を保持
+        self.D = deque(maxlen=self.max_size)
+        self.temp_D = deque(maxlen=self.max_size)
+        self.temp_rot_D = deque(maxlen=self.max_size)
+
         self.states = np.zeros([self.max_size] + list(self.state_shape), dtype=self.state_dtype)
         self.terms = np.zeros(self.max_size, dtype='bool')
 
@@ -131,6 +138,7 @@ class ExperienceReplay(object):
         else:
             self.rewards = np.zeros((self.max_size, self.reward_dim), dtype='float32')
 
+    # 元コードのやつ．storeで置き換え
     def add(self, s, a, r, t):
         self.states[self.tail] = s
         self.actions[self.tail] = a
@@ -141,5 +149,101 @@ class ExperienceReplay(object):
             self.head = (self.head + 1) % self.max_size
         else:
             self.size += 1
+
+    def store_temp_exp(self, states, action, reward, states_1, terminal):
+        self.temp_D.append((states, action, reward, states_1, terminal))
+        # print(np.array(states, action, reward, states_1, terminal))
+        # self.temp_D.append(np.array(states, action, reward, states_1, terminal))
+
+    def store_exp(self, reward_cnt, average_reward_cnt):
+        if reward_cnt > 100 and reward_cnt > average_reward_cnt:
+            # temp_Dのデータを回転してtemp_Dに格納する
+            # self.rotate_experience()
+            # temp_DをDに格納する。
+            self.D.extend(self.temp_D)
+            print('store, exp_num: ' + str(len(self.D)))
+
+        # temp_Dの消去
+        self.temp_D.clear()
+        self.temp_rot_D.clear()
+
+        # return (len(self.D) >= self.replay_memory_size)
+        return (len(self.D) >= self.replay_start)
+
+    def rotate_experience(self):
+        # temp_Dの分だけ回転データを作成
+        for i in range(len(self.temp_D)):
+
+            # 90, 180, 270度回転させたデータを作成
+            for key in range(1, 4):
+
+                # state_t作成 チャネルごとに作成して、4*28*28のタプル作成 一旦リスト→　タプルに変換
+                state_t_rot = []
+
+                for channel in range(len(self.temp_D[i][0])):
+                    state_t_rot_channel = np.rot90(self.temp_D[i][0][channel], k=key)
+                    state_t_rot.append(state_t_rot_channel)
+
+                state_t_rot = tuple(state_t_rot)
+
+                # action
+                # 90
+                if key == 1:
+                    action_rot = 3 if self.temp_D[i][1] == 0 \
+                        else 0 if self.temp_D[i][1] == 1 \
+                        else 1 if self.temp_D[i][1] == 2 \
+                        else 2 if self.temp_D[i][1] == 3 \
+                        else 7 if self.temp_D[i][1] == 4 \
+                        else 4 if self.temp_D[i][1] == 5 \
+                        else 5 if self.temp_D[i][1] == 6 \
+                        else 6 if self.temp_D[i][1] == 7 \
+                        else 11 if self.temp_D[i][1] == 8 \
+                        else 8 if self.temp_D[i][1] == 9 \
+                        else 9 if self.temp_D[i][1] == 10 \
+                        else 10
+                # 180
+                elif key == 2:
+                    action_rot = 2 if self.temp_D[i][1] == 0 \
+                        else 3 if self.temp_D[i][1] == 1 \
+                        else 0 if self.temp_D[i][1] == 2 \
+                        else 1 if self.temp_D[i][1] == 3 \
+                        else 6 if self.temp_D[i][1] == 4 \
+                        else 7 if self.temp_D[i][1] == 5 \
+                        else 4 if self.temp_D[i][1] == 6 \
+                        else 5 if self.temp_D[i][1] == 7 \
+                        else 10 if self.temp_D[i][1] == 8 \
+                        else 11 if self.temp_D[i][1] == 9 \
+                        else 8 if self.temp_D[i][1] == 10 \
+                        else 9
+
+                    # 270
+                # 270
+                elif key == 3:
+                    action_rot = 2 if self.temp_D[i][1] == 0 \
+                        else 3 if self.temp_D[i][1] == 1 \
+                        else 0 if self.temp_D[i][1] == 2 \
+                        else 1 if self.temp_D[i][1] == 3 \
+                        else 5 if self.temp_D[i][1] == 4 \
+                        else 6 if self.temp_D[i][1] == 5 \
+                        else 7 if self.temp_D[i][1] == 6 \
+                        else 4 if self.temp_D[i][1] == 7 \
+                        else 9 if self.temp_D[i][1] == 8 \
+                        else 10 if self.temp_D[i][1] == 9 \
+                        else 11 if self.temp_D[i][1] == 10 \
+                        else 8
+
+                # state_t_1 上と同じく
+                state_t_1_rot = []
+
+                for channel in range(len(self.temp_D[i][3])):
+                    state_t_1_rot_channel = np.rot90(self.temp_D[i][3][channel], k=key)
+                    state_t_1_rot.append(state_t_1_rot_channel)
+
+                state_t_1_rot = tuple(state_t_1_rot)
+
+                # temp_rot_Dに追加
+                self.temp_rot_D.append((state_t_rot, action_rot, self.temp_D[i][2], state_t_1_rot, self.temp_D[i][4]))
+
+        self.temp_D.extend(self.temp_rot_D)
 
 

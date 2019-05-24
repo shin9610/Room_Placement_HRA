@@ -228,6 +228,8 @@ class RoomPlacement:
             temp_site[list[0], list[1]] = 1
 
         state_4chan = tuple((temp_my, temp_your, temp_other, temp_site))
+        # state_4chan = np.array((temp_my, temp_your, temp_other, temp_site))
+
         return state_4chan
 
     def step(self, action, now_agent):
