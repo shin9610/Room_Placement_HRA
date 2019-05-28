@@ -143,8 +143,8 @@ class AI:
             return self.get_max_action(states=states)
 
     def learn(self):
-        assert self.minibatch_size <= self.transitions.size, 'not enough data in the pool'
-        pass
+        assert self.minibatch_size <= len(self.transitions.D), 'not enough data in the pool'
+        print(len(self.transitions.D))
 
     def update_exploration(self):
         if self.epsilon > FINAL_EXPLORATION:

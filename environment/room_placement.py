@@ -273,7 +273,6 @@ class RoomPlacement:
 
         self.step_id += 1
 
-
     def update_move(self, action, now_agent):
         temp = np.zeros((self.col, self.row))
 
@@ -711,6 +710,7 @@ class RoomPlacement:
         self.reward = 0
         self.reward_channels = np.zeros(len(self.reward_scheme), dtype=np.float32)
         self.game_over = False
+        self.step_id = 0
 
         # 現エージェントの状態の初期化
         # self.state_t = self.state_0

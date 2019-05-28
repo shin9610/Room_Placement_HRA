@@ -9,9 +9,12 @@ class DQNExperiment(object):
         self.rng = rng
         self.fps = 0
         self.episode_num = 0
+        self.step_num = 0
         self.last_episode_steps = 0
         self.total_training_steps = 0
-        self.score_agent = 0
+        self.score = 0
+        self.temp_score = 0
+        self.ave_score = 0
         self.eval_steps = []
         self.eval_scores = []
         self.env = env
@@ -22,7 +25,7 @@ class DQNExperiment(object):
             self.folder_name = create_folder(folder_location, folder_name)
         self.episode_max_len = episode_max_len
         self.num_agents = env.n_agents
-        self.score_agent_window = np.zeros(score_window_size)
+        self.score_window = np.zeros(score_window_size)
         self.steps_agent_window = np.zeros(score_window_size)
         self.replay_min_size = max(self.ai.minibatch_size, replay_min_size)
         self.last_state = np.empty(tuple([self.history_len] + self.env.state_shape), dtype=np.uint8)
@@ -35,37 +38,36 @@ class DQNExperiment(object):
                   end='\n')
             self.do_episodes(number=eps_per_epoch, is_learning=is_learning)
 
-            if is_testing:
-                eval_scores, eval_steps = self.do_episodes(number=eps_per_test, is_learning=False)
-                self.eval_steps.append(eval_steps)
-                self.eval_scores.append(eval_scores)
-                plot_and_write(plot_dict={'steps': self.eval_steps}, loc=self.folder_name + "/steps",
-                               x_label="Episodes", y_label="Steps", title="", kind='line', legend=True)
-                plot_and_write(plot_dict={'scores': self.eval_scores}, loc=self.folder_name + "/scores",
-                               x_label="Episodes", y_label="Scores", title="", kind='line', legend=True)
-                self.ai.dump_network(weights_file_path=self.folder_name + '/q_network_weights.h5',
-                                     overwrite=True)
+            # testモードの実装は後で．
+            # if is_testing:
+            #     eval_scores, eval_steps = self.do_episodes(number=eps_per_test, is_learning=False)
+            #     self.eval_steps.append(eval_steps)
+            #     self.eval_scores.append(eval_scores)
+            #     plot_and_write(plot_dict={'steps': self.eval_steps}, loc=self.folder_name + "/steps",
+            #                    x_label="Episodes", y_label="Steps", title="", kind='line', legend=True)
+            #     plot_and_write(plot_dict={'scores': self.eval_scores}, loc=self.folder_name + "/scores",
+            #                    x_label="Episodes", y_label="Scores", title="", kind='line', legend=True)
+            #     self.ai.dump_network(weights_file_path=self.folder_name + '/q_network_weights.h5',
+            #                          overwrite=True)
 
     def do_episodes(self, number=1, is_learning=True):
         scores = []
-        steps = []
         
         # eps中において，eps per epochに達するまでepsを行う　→　1回に指定
         for num in range(number):
             self._do_episode(is_learning=is_learning)
-            scores.append(self.score_agent)
-            steps.append(self.last_episode_steps)
+            scores.append(self.score)
 
             # 学習が終了したなら
             if not is_learning:
                 # 元コードの処理が不明　→　passで
-                # self.score_agent_window = self._update_window(self.score_agent_window, self.score_agent)
+                # self.score_window = self._update_window(self.score_window, self.score)
                 # self.steps_agent_window = self._update_window(self.steps_agent_window, self.last_episode_steps)
                 pass
             else:
                 # episode_numを足す
                 self.episode_num += 1
-        return np.mean(scores), np.mean(steps)
+        return np.mean(scores)
 
     def _do_episode(self, is_learning=True, evaluate=False):
         rewards = []
@@ -83,6 +85,8 @@ class DQNExperiment(object):
         while not game_over:
             # 各agent順に行動
             for now_agent in range(self.env.n_agents):
+                self.step_num += 1
+
                 self.last_episode_steps += 1
                 state_t = copy.deepcopy(next_state_t_1)
 
@@ -96,22 +100,31 @@ class DQNExperiment(object):
                 state_t_1, next_state_t_1, reward_t, reward_channels, game_over = self.env.observe()
 
                 if not evaluate:
-                    # store memory　→　Dで実装しなおしてもよい
-                    # self.ai.transitions.add(s=self.last_state[-1].astype('float32'), a=action, r=reward_channels,
-                    #                         t=game_over)
+                    # 毎step終了後にtemp_Dへstore
                     self.ai.transitions.store_temp_exp(np.array((state_t)), action, reward_channels, np.array((state_t_1)), game_over)
                     self.total_training_steps += 1
 
                 rewards.append(reward_t)
-                self.score_agent += reward_t
+                self.score += reward_t
 
-            if game_over == True:
-                # replayのminより経験の数が多い　＋　学習フラグあり　＋　replayの頻度
-                if self.ai.transitions.size >= self.replay_min_size and is_learning and \
-                        self.last_episode_steps % self.ai.learning_frequency == 0:
+                # episode終了時
+                if game_over == True:
+                    self.temp_score += self.score
 
-                    # 学習を行う →　learn()　→　train_on_batch()　→　_train_on_batch()
-                    self.ai.learn()
+                    self.ave_score, self.temp_score = \
+                        self.ai.transitions.compute_ave(self.score, self.temp_score, self.ave_score, self.episode_num, div=20)
+
+                    # 条件満たせばtemp_DをDへ保存
+                    self.ai.transitions.store_exp(self.score, self.ave_score)
+                    # replayのminより経験の数が多い　＋　学習フラグあり　＋　replayの頻度
+                    if self.ai.transitions.size >= self.replay_min_size and is_learning and \
+                            self.last_episode_steps % self.ai.learning_frequency == 0:
+
+                        # 学習を行う →　learn()　→　train_on_batch()　→　_train_on_batch()
+                        self.ai.learn()
+
+                    self.env.reset()
+                    break
 
             # # エピソード中の最大stepまで達したら
             # if not term and self.last_episode_steps >= self.episode_max_len:
@@ -124,7 +137,8 @@ class DQNExperiment(object):
 
     def _reset(self):
         self.last_episode_steps = 0
-        self.score_agent = 0
+        self.score = 0
+        self.step_num = 0
 
         assert self.max_start_nullops >= self.history_len or self.max_start_nullops == 0
 

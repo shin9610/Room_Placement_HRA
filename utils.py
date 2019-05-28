@@ -19,7 +19,6 @@ from keras.models import model_from_config
 def flatten(l):
     return [item for sublist in l for item in sublist]
 
-
 def clone_model(model, custom_objects={}):
     config = {
         'class_name': model.__class__.__name__,
@@ -28,7 +27,6 @@ def clone_model(model, custom_objects={}):
     clone = model_from_config(config, custom_objects=custom_objects)
     clone.set_weights(model.get_weights())
     return clone
-
 
 def set_params(params, mode, gamma=None, lr=None, folder_name=None):
     if mode == 'dqn':
@@ -138,6 +136,17 @@ class ExperienceReplay(object):
         else:
             self.rewards = np.zeros((self.max_size, self.reward_dim), dtype='float32')
 
+    def compute_ave(self, score, temp_score, ave_score, episode, div=20):
+        print("score: " + str(score))
+        if episode % div == 0 and episode != 0:
+            temp_ave_score = temp_score / div
+            if temp_ave_score > ave_score:
+                ave_score = temp_ave_score
+                print("average_score: " + str(ave_score))
+            temp_score = 0
+
+        return ave_score, temp_score
+
     # 元コードのやつ．storeで置き換え
     def add(self, s, a, r, t):
         self.states[self.tail] = s
@@ -155,20 +164,22 @@ class ExperienceReplay(object):
         # print(np.array(states, action, reward, states_1, terminal))
         # self.temp_D.append(np.array(states, action, reward, states_1, terminal))
 
-    def store_exp(self, reward_cnt, average_reward_cnt):
-        if reward_cnt > 100 and reward_cnt > average_reward_cnt:
+    def store_exp(self, score, ave_score):
+        if score > ave_score:
+
             # temp_Dのデータを回転してtemp_Dに格納する
             # self.rotate_experience()
+
             # temp_DをDに格納する。
             self.D.extend(self.temp_D)
-            print('store, exp_num: ' + str(len(self.D)))
+            # print('store, exp_num: ' + str(len(self.D)))
 
         # temp_Dの消去
         self.temp_D.clear()
         self.temp_rot_D.clear()
 
         # return (len(self.D) >= self.replay_memory_size)
-        return (len(self.D) >= self.replay_start)
+        # return (len(self.D) >= self.replay_start)
 
     def rotate_experience(self):
         # temp_Dの分だけ回転データを作成
