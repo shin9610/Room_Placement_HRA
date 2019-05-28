@@ -142,15 +142,32 @@ class AI:
         else:
             return self.get_max_action(states=states)
 
+    def train_on_batch(self, s, a, r, s2, t):
+        # 元コード　expand_dimsをしている
+        # s = self._reshape(s)
+        # s2 = self._reshape(s2)
+        # if len(r.shape) == 1:
+        #     r = np.expand_dims(r, axis=-1)
+
+        return self._train_on_batch([s, a, r, s2, t])
+
     def learn(self):
         assert self.minibatch_size <= len(self.transitions.D), 'not enough data in the pool'
 
         # 経験のサンプリング
         s, a, r, s2, term = self.transitions.sample(self.minibatch_size)
 
-        objective = self.train_on_batch(s, a, r, s2, t)
+        objective = self.train_on_batch(s, a, r, s2, term)
 
+        # ターゲットに対してネットワークの更新
+        if self.update_counter == self.update_freq:
+            self.update_weights([])
+            print('update_weights')
+            self.update_counter = 0
+        else:
+            self.update_counter += 1
 
+        return objective
 
     def update_exploration(self):
         if self.epsilon > FINAL_EXPLORATION:
@@ -160,44 +177,6 @@ class AI:
                 self.expsilon = FINAL_EXPLORATION
         
         print(self.epsilon)
-        
-    def experience_replay(self):
-        state_minibatch = []
-        y_minibatch = []
-        action_minibatch = []
-
-        # sample random minibatch
-        minibatch_size = min(len(self.D), self.minibatch_size)
-        minibatch_indexes = np.random.randint(0, len(self.D), minibatch_size)
-
-        # storeからランダムにミニバッチのインデックスを指定して取得．
-        # それらをminibatch_sizeまでminibatchのリストにappendしていく
-        for j in minibatch_indexes:
-            state_j, action_j, reward_j, state_j_1, terminal = self.D[j]
-            action_j_index = self.enable_actions.index(action_j)
-
-            # state_jを入力として、modelから推論されるQ_values
-            # y_j = self.Q_values(state_j)
-            y_j = self.predict_network([state_j])
-
-            # Q値の更新式．教師信号y_trueになる．
-            if terminal:
-                # terminalの扱い．ゴールにたどり着き次のステップがない，という状態であれば，そのまま報酬がQとなる
-                y_j[action_j_index] = reward_j
-                # v = np.max(self.Q_values(state_j_1, isTarget=True))
-                # y_j[action_j_index] = reward_j + self.discount_factor * v
-            else:
-                # v = self.Q_values(state_j_1, isTarget=True)[action_j_index]
-                # target_modelより推論されるQ_valuesの最大値からvを計算。
-                v = np.max(self.predict_target_network([state_j_1]))
-                # 実際に行動として選択したノードのQを更新　
-                y_j[action_j_index] = reward_j + self.gamma * v
-
-            state_minibatch.append(state_j)
-            y_minibatch.append(y_j)
-            action_minibatch.append(action_j_index)
-
-        validation_data = None
 
     @staticmethod
     def weight_transfer(from_model, to_model):
