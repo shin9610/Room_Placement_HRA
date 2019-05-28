@@ -144,7 +144,13 @@ class AI:
 
     def learn(self):
         assert self.minibatch_size <= len(self.transitions.D), 'not enough data in the pool'
-        print(len(self.transitions.D))
+
+        # 経験のサンプリング
+        s, a, r, s2, term = self.transitions.sample(self.minibatch_size)
+
+        objective = self.train_on_batch(s, a, r, s2, t)
+
+
 
     def update_exploration(self):
         if self.epsilon > FINAL_EXPLORATION:

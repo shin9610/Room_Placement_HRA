@@ -117,7 +117,7 @@ class DQNExperiment(object):
                     # 条件満たせばtemp_DをDへ保存
                     self.ai.transitions.store_exp(self.score, self.ave_score)
                     # replayのminより経験の数が多い　＋　学習フラグあり　＋　replayの頻度
-                    if self.ai.transitions.size >= self.replay_min_size and is_learning and \
+                    if len(self.ai.transitions.D) >= self.replay_min_size and is_learning and \
                             self.last_episode_steps % self.ai.learning_frequency == 0:
 
                         # 学習を行う →　learn()　→　train_on_batch()　→　_train_on_batch()

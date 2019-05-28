@@ -147,6 +147,34 @@ class ExperienceReplay(object):
 
         return ave_score, temp_score
 
+    def _init_batch(self, number):
+        self.s = np.zeros([number] + list(self.state_shape), dtype=self.states[0].dtype)
+        self.s2 = np.zeros([number] + list(self.state_shape), dtype=self.states[0].dtype)
+        self.t = np.zeros(number, dtype=bool)
+        self.a = np.zeros(number, dtype='int32')
+        if self.rewards.ndim == 1:
+            self.r = np.zeros(number, dtype='float32')
+        else:
+            self.r = np.zeros((number, self.reward_dim), dtype='float32')
+
+    def sample(self, num=32):
+        if len(self.D) == 0:
+            logging.error('cannot sample from empty transition table')
+        else:
+            if not self._minibatch_size or num != self._minibatch_size:
+                self._init_batch(number=num)
+                self._minibatch_size = num
+            for i in range(num):
+                self.s[i], self.a[i], self.r[i], self.s2[i], self.t[i] = self._get_transition()
+            return self.s, self.a, self.r, self.s2, self.t
+
+    def _get_transition(self):
+        randint = self.rng.randint(0, len(self.D))
+        s, a, r, s2, t = self.D[randint]
+
+        return s, a, r, s2, t
+
+
     # 元コードのやつ．storeで置き換え
     def add(self, s, a, r, t):
         self.states[self.tail] = s
