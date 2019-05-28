@@ -1,6 +1,6 @@
 import time
 import numpy as np
-from utils import Font, plot_and_write, create_folder
+from utils import Font, plot_and_write, create_folder, compute_ave, graph
 import copy
 
 class DQNExperiment(object):
@@ -112,7 +112,7 @@ class DQNExperiment(object):
                     self.temp_score += self.score
 
                     self.ave_score, self.temp_score = \
-                        self.ai.transitions.compute_ave(self.score, self.temp_score, self.ave_score, self.episode_num, div=20)
+                        compute_ave(self.score, self.temp_score, self.ave_score, self.episode_num, div=20)
 
                     # 条件満たせばtemp_DをDへ保存
                     self.ai.transitions.store_exp(self.score, self.ave_score)

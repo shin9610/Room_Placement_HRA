@@ -72,10 +72,25 @@ def slice_tensor_tensor(tensor, tensor_slice):
 
 def plot_and_write(plot_dict, loc, x_label="", y_label="", title="", kind='line', legend=True,
                    moving_average=False):
-    for key in plot_dict:
-        plot(data={key: plot_dict[key]}, loc=loc + ".pdf", x_label=x_label, y_label=y_label, title=title,
-             kind=kind, legend=legend, index_col=None, moving_average=moving_average)
-        write_to_csv(data={key: plot_dict[key]}, loc=loc + ".csv")
+    pass
+    # for key in plot_dict:
+    #     plot(data={key: plot_dict[key]}, loc=loc + ".pdf", x_label=x_label, y_label=y_label, title=title,
+    #          kind=kind, legend=legend, index_col=None, moving_average=moving_average)
+    #     write_to_csv(data={key: plot_dict[key]}, loc=loc + ".csv")
+
+def graph(episode, episode_num_list, score_list):
+    pass
+
+def compute_ave(score, temp_score, ave_score, episode, div=20):
+    print("score: " + str(score))
+    if episode % div == 0 and episode != 0:
+        temp_ave_score = temp_score / div
+        if temp_ave_score > ave_score:
+            ave_score = temp_ave_score
+            print("average_score: " + str(ave_score))
+        temp_score = 0
+
+    return ave_score, temp_score
 
 def create_folder(folder_location, folder_name):
     i = 0
@@ -136,16 +151,16 @@ class ExperienceReplay(object):
         else:
             self.rewards = np.zeros((self.max_size, self.reward_dim), dtype='float32')
 
-    def compute_ave(self, score, temp_score, ave_score, episode, div=20):
-        print("score: " + str(score))
-        if episode % div == 0 and episode != 0:
-            temp_ave_score = temp_score / div
-            if temp_ave_score > ave_score:
-                ave_score = temp_ave_score
-                print("average_score: " + str(ave_score))
-            temp_score = 0
-
-        return ave_score, temp_score
+    # def compute_ave(self, score, temp_score, ave_score, episode, div=20):
+    #     print("score: " + str(score))
+    #     if episode % div == 0 and episode != 0:
+    #         temp_ave_score = temp_score / div
+    #         if temp_ave_score > ave_score:
+    #             ave_score = temp_ave_score
+    #             print("average_score: " + str(ave_score))
+    #         temp_score = 0
+    #
+    #     return ave_score, temp_score
 
     def _init_batch(self, number):
         self.s = np.zeros([number] + list(self.state_shape), dtype=self.states[0].dtype)
