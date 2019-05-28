@@ -40,7 +40,7 @@ def worker(params):
                              history_len=params['history_len'], max_start_nullops=params['max_start_nullops'],
                              replay_min_size=params['replay_min_size'], folder_location=params['folder_location'],
                              folder_name=params['folder_name'], testing=params['test'], score_window_size=100,
-                             rng=random_state)
+                             rng=random_state, draw_graph_freq=params['draw_graph_freq'])
     
 
     if not params['test']:

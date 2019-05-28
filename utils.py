@@ -19,6 +19,7 @@ from keras.models import model_from_config
 def flatten(l):
     return [item for sublist in l for item in sublist]
 
+
 def clone_model(model, custom_objects={}):
     config = {
         'class_name': model.__class__.__name__,
@@ -27,6 +28,7 @@ def clone_model(model, custom_objects={}):
     clone = model_from_config(config, custom_objects=custom_objects)
     clone.set_weights(model.get_weights())
     return clone
+
 
 def set_params(params, mode, gamma=None, lr=None, folder_name=None):
     if mode == 'dqn':
@@ -62,6 +64,7 @@ def set_params(params, mode, gamma=None, lr=None, folder_name=None):
         params['folder_name'] = folder_name
     return params
 
+
 def slice_tensor_tensor(tensor, tensor_slice):
     if K.backend() == 'tensorflow':
         amask = K.tf.one_hot(tensor_slice, tensor.get_shape()[1], 1.0, 0.0)
@@ -69,6 +72,7 @@ def slice_tensor_tensor(tensor, tensor_slice):
     else:
         raise Exception("Not using tensor flow as backend")
     return output
+
 
 def plot_and_write(plot_dict, loc, x_label="", y_label="", title="", kind='line', legend=True,
                    moving_average=False):
@@ -78,8 +82,23 @@ def plot_and_write(plot_dict, loc, x_label="", y_label="", title="", kind='line'
     #          kind=kind, legend=legend, index_col=None, moving_average=moving_average)
     #     write_to_csv(data={key: plot_dict[key]}, loc=loc + ".csv")
 
-def graph(episode, episode_num_list, score_list):
-    pass
+
+def graph(episode, score_list, draw_graph_freq):
+    if episode % draw_graph_freq == 0 and episode != 0:
+        episode_list = []
+        for i in range(episode):
+            episode_list.append(i)
+
+        fig = plt.figure()
+
+        dt = datetime.now().strftime("%m%d_%H%M")
+
+        x_axis = np.array(episode_list)
+        y_axis = np.array(score_list)
+        plt.plot(x_axis, y_axis)
+
+        plt.savefig('./results/graph' + str(dt) + '.png')
+
 
 def compute_ave(score, temp_score, ave_score, episode, div=20):
     print("score: " + str(score))

@@ -27,3 +27,5 @@ learning_frequency: 4
 update_freq: 50
 action_dim: 1
 num_units: 250
+
+draw_graph_freq: 10

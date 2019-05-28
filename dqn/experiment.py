@@ -5,7 +5,8 @@ import copy
 
 class DQNExperiment(object):
     def __init__(self, env, ai, episode_max_len, history_len=1, max_start_nullops=1, replay_min_size=0,
-                 score_window_size=100, rng=None, folder_location='/experiments/', folder_name='expt', testing=False):
+                 score_window_size=100, rng=None, draw_graph_freq=100, folder_location='/experiments/',
+                 folder_name='expt', testing=False):
         self.rng = rng
         self.fps = 0
         self.episode_num = 0
@@ -30,15 +31,20 @@ class DQNExperiment(object):
         self.replay_min_size = max(self.ai.minibatch_size, replay_min_size)
         self.last_state = np.empty(tuple([self.history_len] + self.env.state_shape), dtype=np.uint8)
 
+        self.draw_graph_freq = draw_graph_freq
+
 
     def do_training(self, total_eps=5000, eps_per_epoch=100, eps_per_test=100, is_learning=True, is_testing=True):
         # total eps に達するまでepsを行う
+        scores = []
+
         while self.episode_num < total_eps:
             print(Font.yellow + Font.bold + 'Training ... ' + str(self.episode_num) + '/' + str(total_eps) + Font.end,
                   end='\n')
             self.do_episodes(number=eps_per_epoch, is_learning=is_learning)
+            scores.append(self.score)
+            graph(self.episode_num, scores, self.draw_graph_freq)
 
-            # testモードの実装は後で．
             # if is_testing:
             #     eval_scores, eval_steps = self.do_episodes(number=eps_per_test, is_learning=False)
             #     self.eval_steps.append(eval_steps)
@@ -56,7 +62,6 @@ class DQNExperiment(object):
         # eps中において，eps per epochに達するまでepsを行う　→　1回に指定
         for num in range(number):
             self._do_episode(is_learning=is_learning)
-            scores.append(self.score)
 
             # 学習が終了したなら
             if not is_learning:
@@ -116,6 +121,7 @@ class DQNExperiment(object):
 
                     # 条件満たせばtemp_DをDへ保存
                     self.ai.transitions.store_exp(self.score, self.ave_score)
+
                     # replayのminより経験の数が多い　＋　学習フラグあり　＋　replayの頻度
                     if len(self.ai.transitions.D) >= self.replay_min_size and is_learning and \
                             self.last_episode_steps % self.ai.learning_frequency == 0:
