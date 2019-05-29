@@ -1,3 +1,4 @@
+import time
 import numpy as np
 from collections import deque
 from keras import backend as K
@@ -152,6 +153,8 @@ class AI:
         return self._train_on_batch([s, a, r, s2, t])
 
     def learn(self):
+        start_time = time.time()
+
         assert self.minibatch_size <= len(self.transitions.D), 'not enough data in the pool'
 
         # 経験のサンプリング
@@ -162,12 +165,13 @@ class AI:
         # ターゲットに対してネットワークの更新
         if self.update_counter == self.update_freq:
             self.update_weights([])
-            print('update_weights')
             self.update_counter = 0
         else:
             self.update_counter += 1
 
-        return objective
+        learn_time = time.time() - start_time
+
+        return objective, learn_time
 
     def dump_network(self, weights_file_path='q_network_weights.h5', overwrite=True):
         for i, network in enumerate(self.networks):

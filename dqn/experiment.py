@@ -18,6 +18,8 @@ class DQNExperiment(object):
         self.eval_steps = []
         self.eval_scores = []
         self.elapsed_times = []
+        self.learn_time = 0
+        self.learn_times = []
         self.env = env
         self.ai = ai
         self.history_len = history_len
@@ -39,7 +41,7 @@ class DQNExperiment(object):
         while self.episode_num < total_eps:
             print(Font.yellow + Font.bold + 'Training ... ' + str(self.episode_num) + '/' + str(total_eps) + Font.end,
                   end='\n')
-            eval_scores, elapsed_times = self.do_episodes(number=eps_per_epoch, is_learning=is_learning)
+            eval_scores, elapsed_times, learn_times = self.do_episodes(number=eps_per_epoch, is_learning=is_learning)
 
             # graph(self.episode_num, scores, self.draw_graph_freq)
 
@@ -48,11 +50,16 @@ class DQNExperiment(object):
                 # eval_scores = self.do_episodes(number=eps_per_test, is_learning=False)
                 self.eval_scores.append(eval_scores)
                 self.elapsed_times.append(elapsed_times)
-                print('Score: ' + str(eval_scores) + ',  Time: ' +str(elapsed_times))
+                self.learn_times.append(learn_times)
+
+                print('Score: ' + str(eval_scores) + ',  Time: ' +str(elapsed_times) +
+                      ',  Learn_Time: ' +str(learn_times))
 
                 plot_and_write(plot_dict={'scores': self.eval_scores}, loc=self.folder_name + "/scores",
                                x_label="Episodes", y_label="Scores", title="", kind='line', legend=True)
                 plot_and_write(plot_dict={'times': self.elapsed_times}, loc=self.folder_name + "/times",
+                               x_label="Episodes", y_label="Times", title="", kind='line', legend=True)
+                plot_and_write(plot_dict={'learn_times': self.learn_times}, loc=self.folder_name + "/learn_times",
                                x_label="Episodes", y_label="Times", title="", kind='line', legend=True)
 
                 self.ai.dump_network(weights_file_path=self.folder_name + '/q_network_weights.h5',
@@ -60,6 +67,7 @@ class DQNExperiment(object):
 
     def do_episodes(self, number, is_learning=True):
         times = []
+        learn_times = []
         scores = []
         steps = []
 
@@ -69,9 +77,12 @@ class DQNExperiment(object):
             self._do_episode(is_learning=is_learning)
             scores.append(self.score)
             steps.append(self.last_episode_steps)
+            learn_times.append(self.learn_time)
+            # print(self.learn_time)
 
             elapsed_time = time.time() - start_time
             times.append(elapsed_time)
+            # print(elapsed_time)
 
             if not is_learning:
                 self.score_window = self._update_window(self.score_window, self.score)
@@ -80,7 +91,7 @@ class DQNExperiment(object):
                 # episode_numを足す
                 self.episode_num += 1
 
-        return np.mean(scores), np.mean(times)
+        return np.mean(scores), np.mean(times), np.mean(learn_times)
 
     def _do_episode(self, is_learning=True, evaluate=False):
         rewards = []
@@ -116,8 +127,7 @@ class DQNExperiment(object):
                         self.last_episode_steps % self.ai.learning_frequency == 0:
 
                     # 学習を行う →　learn()　→　train_on_batch()　→　_train_on_batch()
-                    self.ai.learn()
-                    print('learn')
+                    _, self.learn_time = self.ai.learn()
 
                 if not evaluate:
                     self.ai.transitions.store_temp_exp(np.array((state_t)), action, reward_channels, np.array((state_t_1)), game_over)
@@ -150,6 +160,7 @@ class DQNExperiment(object):
     def _reset(self):
         self.last_episode_steps = 0
         self.score = 0
+        self.learn_time = 0
 
         assert self.max_start_nullops >= self.history_len or self.max_start_nullops == 0
 
