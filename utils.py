@@ -74,42 +74,49 @@ def slice_tensor_tensor(tensor, tensor_slice):
     return output
 
 
+def plot(data={}, loc="visualization.pdf", x_label="", y_label="", title="", kind='line',
+         legend=True, index_col=None, clip=None, moving_average=False):
+    if all([len(data[key]) > 1 for key in data]):
+        if moving_average:
+            smoothed_data = {}
+            for key in data:
+                smooth_scores = [np.mean(data[key][max(0, i - 10):i + 1]) for i in range(len(data[key]))]
+                smoothed_data['smoothed_' + key] = smooth_scores
+                smoothed_data[key] = data[key]
+            data = smoothed_data
+        df = pd.DataFrame(data=data)
+        ax = df.plot(kind=kind, legend=legend, ylim=clip)
+        ax.set_xlabel(x_label)
+        ax.set_ylabel(y_label)
+        ax.set_title(title)
+        plt.tight_layout()
+        plt.savefig(loc)
+        plt.close()
+
+
+def write_to_csv(data={}, loc="data.csv"):
+    if all([len(data[key]) > 1 for key in data]):
+        df = pd.DataFrame(data=data)
+        df.to_csv(loc)
+
+
 def plot_and_write(plot_dict, loc, x_label="", y_label="", title="", kind='line', legend=True,
                    moving_average=False):
-    pass
-    # for key in plot_dict:
-    #     plot(data={key: plot_dict[key]}, loc=loc + ".pdf", x_label=x_label, y_label=y_label, title=title,
-    #          kind=kind, legend=legend, index_col=None, moving_average=moving_average)
-    #     write_to_csv(data={key: plot_dict[key]}, loc=loc + ".csv")
+    for key in plot_dict:
+        plot(data={key: plot_dict[key]}, loc=loc + ".pdf", x_label=x_label, y_label=y_label, title=title,
+             kind=kind, legend=legend, index_col=None, moving_average=moving_average)
+        write_to_csv(data={key: plot_dict[key]}, loc=loc + ".csv")
 
 
-def graph(episode, score_list, draw_graph_freq):
-    if episode % draw_graph_freq == 0 and episode != 0:
-        episode_list = []
-        for i in range(episode):
-            episode_list.append(i)
-
-        fig = plt.figure()
-
-        dt = datetime.now().strftime("%m%d_%H%M")
-
-        x_axis = np.array(episode_list)
-        y_axis = np.array(score_list)
-        plt.plot(x_axis, y_axis)
-
-        plt.savefig('./results/graph' + str(dt) + '.png')
-
-
-def compute_ave(score, temp_score, ave_score, episode, div=20):
-    print("score: " + str(score))
+def compute_ave(score, temp_scores, ave_score, episode, div=20):
     if episode % div == 0 and episode != 0:
-        temp_ave_score = temp_score / div
+        temp_ave_score = temp_scores / div
         if temp_ave_score > ave_score:
             ave_score = temp_ave_score
             print("average_score: " + str(ave_score))
-        temp_score = 0
+        temp_scores = 0
 
-    return ave_score, temp_score
+    return ave_score, temp_scores
 
 def create_folder(folder_location, folder_name):
     i = 0

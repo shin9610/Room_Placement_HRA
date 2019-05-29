@@ -169,14 +169,9 @@ class AI:
 
         return objective
 
-    def update_exploration(self):
-        if self.epsilon > FINAL_EXPLORATION:
-            # self.exploration -= self.exploration_step * num
-            self.epsilon -= self.epsilon_step * 1
-            if self.epsilon < FINAL_EXPLORATION:
-                self.expsilon = FINAL_EXPLORATION
-        
-        print(self.epsilon)
+    def dump_network(self, weights_file_path='q_network_weights.h5', overwrite=True):
+        for i, network in enumerate(self.networks):
+            network.save_weights(weights_file_path[:-3] + str(i) + weights_file_path[-3:], overwrite=overwrite)
 
     @staticmethod
     def weight_transfer(from_model, to_model):
