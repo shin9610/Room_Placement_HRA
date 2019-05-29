@@ -18,6 +18,7 @@ class DQNExperiment(object):
         self.eval_steps = []
         self.eval_scores = []
         self.elapsed_times = []
+        self.total_time = 0
         self.learn_time = 0
         self.learn_times = []
         self.env = env
@@ -25,7 +26,8 @@ class DQNExperiment(object):
         self.history_len = history_len
         self.max_start_nullops = max_start_nullops
         if not testing:
-            self.folder_name = create_folder(folder_location, folder_name)
+            self.folder_name, self.folder_name_images, self.folder_name_movies = \
+                create_folder(folder_location, folder_name)
         self.episode_max_len = episode_max_len
         self.num_agents = env.n_agents
         self.score_window = np.zeros(score_window_size)
@@ -52,8 +54,11 @@ class DQNExperiment(object):
                 self.elapsed_times.append(elapsed_times)
                 self.learn_times.append(learn_times)
 
-                print('Score: ' + str(eval_scores) + ',  Time: ' +str(elapsed_times) +
-                      ',  Learn_Time: ' +str(learn_times))
+                print('Score: ' + str(eval_scores) + '\n' + 'Time: ' + str(elapsed_times) + '\n' +
+                      'Learn_Time: ' + str(learn_times) + '\n' + 'Total_time: ' + str(self.total_time))
+
+                # 動画の作成
+                self.env.movie(self.episode_num, self.folder_name_images, self.folder_name_movies)
 
                 plot_and_write(plot_dict={'scores': self.eval_scores}, loc=self.folder_name + "/scores",
                                x_label="Episodes", y_label="Scores", title="", kind='line', legend=True)
@@ -82,6 +87,7 @@ class DQNExperiment(object):
 
             elapsed_time = time.time() - start_time
             times.append(elapsed_time)
+            self.total_time += elapsed_time
             # print(elapsed_time)
 
             if not is_learning:
@@ -129,9 +135,14 @@ class DQNExperiment(object):
                     # 学習を行う →　learn()　→　train_on_batch()　→　_train_on_batch()
                     _, self.learn_time = self.ai.learn()
 
+                # temp_Dを保存
                 if not evaluate:
                     self.ai.transitions.store_temp_exp(np.array((state_t)), action, reward_channels, np.array((state_t_1)), game_over)
                     self.total_training_steps += 1
+
+                # フレーム画像の描画
+                self.env.draw_cv2(now_agent, action, self.last_episode_steps, reward_channels,
+                                  self.score, self.episode_num, self.folder_name_images)
 
                 # episode終了時
                 if game_over == True:

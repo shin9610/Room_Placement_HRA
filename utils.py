@@ -127,7 +127,13 @@ def create_folder(folder_location, folder_name):
     folder_location = folder_location.replace('/', '')
     folder_name = os.path.join(os.path.abspath('../'), folder_location, folder_name + str(i) + str(t))
     os.mkdir(folder_name)
-    return folder_name
+    folder_name_images = os.path.join(folder_name, str('images'))
+    os.mkdir(folder_name_images)
+    folder_name_movies = os.path.join(folder_name, str('movies'))
+    os.mkdir(folder_name_movies)
+    return folder_name, folder_name_images, folder_name_movies
+    # return folder_name
+
 
 class Font:
     purple = '\033[95m'
@@ -215,7 +221,6 @@ class ExperienceReplay(object):
 
         return s, a, r, s2, t
 
-
     # 元コードのやつ．storeで置き換え
     def add(self, s, a, r, t):
         self.states[self.tail] = s
@@ -241,7 +246,7 @@ class ExperienceReplay(object):
 
             # temp_DをDに格納する。
             self.D.extend(self.temp_D)
-            print('store, exp_num: ' + str(len(self.D)))
+            # print('store, exp_num: ' + str(len(self.D)))
 
         # temp_Dの消去
         self.temp_D.clear()

@@ -13,10 +13,11 @@ from datetime import datetime
 
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+from utils import create_folder
 
 
 class RoomPlacement:
-    def __init__(self):
+    def __init__(self, draw_cv2_freq, draw_movie_freq, folder_name, folder_location):
         # 盤面のサイズ
         self.col = 28
         self.row = 28
@@ -67,9 +68,9 @@ class RoomPlacement:
         # self.state_4chan_t = copy.deepcopy(self.state_4chan_0)
 
         # 描画系の変数
-        self.n_draw_cv2 = 1000
-        self.n_draw_ani = 1000
-        self.n_draw_graph = 100
+
+        self.draw_cv2_freq = draw_cv2_freq
+        self.draw_movie_freq = draw_movie_freq
 
     # 盤面の初期化
     def init_square(self):
@@ -545,8 +546,8 @@ class RoomPlacement:
 
         return bgr
 
-    def draw_cv2(self, now_agent, action, step, reward, reward_total, episode):
-        if episode % self.n_draw_cv2 == 0 and episode != 0:
+    def draw_cv2(self, now_agent, action, step, reward, reward_total, episode, folder_name_images):
+        if episode % self.draw_cv2_freq == 0 and episode != 0:
             self.img = np.full((400, 280, 3), 0, dtype=np.uint8)
             grid_pitch = 10
             action_names = ('move_up', 'move_right', 'move_down', 'move_left',
@@ -623,16 +624,20 @@ class RoomPlacement:
 
             # fileへの出力
             if len(str(step)) == 4:
-                cv2.imwrite('./cv2_image/images/img' + str(step) + '.png', self.img)
+                cv2.imwrite(str(folder_name_images) + '/img' + str(step) + '.png', self.img)
+                # cv2.imwrite('./cv2_image/images/img' + str(step) + '.png', self.img)
             elif len(str(step)) == 3:
-                cv2.imwrite('./cv2_image/images/img0' + str(step) + '.png', self.img)
+                cv2.imwrite(str(folder_name_images) + '/img0' + str(step) + '.png', self.img)
+                # cv2.imwrite('./cv2_image/images/img0' + str(step) + '.png', self.img)
             elif len(str(step)) == 2:
-                cv2.imwrite('./cv2_image/images/img00' + str(step) + '.png', self.img)
+                cv2.imwrite(str(folder_name_images) + '/img00' + str(step) + '.png', self.img)
+                # cv2.imwrite('./cv2_image/images/img00' + str(step) + '.png', self.img)
             elif len(str(step)) == 1:
-                cv2.imwrite('./cv2_image/images/img000' + str(step) + '.png', self.img)
+                cv2.imwrite(str(folder_name_images) + '/img000' + str(step) + '.png', self.img)
+                # cv2.imwrite('./cv2_image/images/img000' + str(step) + '.png', self.img)
 
     def gif_animation(self, episode):
-        if episode % self.n_draw_ani == 0 and episode != 0:
+        if episode % self.draw_movie_freq == 0 and episode != 0:
             folderName = "./cv2_image/images"
 
             # 画像ファイルの一覧を取得
@@ -658,10 +663,10 @@ class RoomPlacement:
             # ani.save('./cv2_image/1022_0043/animation' +str(dt) + '.gif', writer="imagemagick")
             ani.save('./cv2_image/gif_ani/animation' +str(dt) + '.gif', writer="imagemagick")
 
-    def movie(self, episode):
-        if episode % self.n_draw_ani == 0 and episode != 0:
+    def movie(self, episode, folder_name_images, folder_name_movies):
+        if episode % self.draw_movie_freq == 0 and episode != 0:
             # VideoCapture を作成する。
-            img_path = os.path.join("./cv2_image/images", 'img%04d.png')  # 画像ファイルのパス
+            img_path = os.path.join(folder_name_images, 'img%04d.png')  # 画像ファイルのパス
             cap = cv2.VideoCapture(img_path)
             width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
             height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -671,7 +676,7 @@ class RoomPlacement:
 
             # VideoWriter を作成する。
             fourcc = cv2.VideoWriter_fourcc(*'DIVX')
-            writer = cv2.VideoWriter('./cv2_image/movie/movie' + str(dt) + '.mp4', fourcc, fps, (width, height))
+            writer = cv2.VideoWriter(str(folder_name_movies) + '/movie' + str(dt) + '.mp4', fourcc, fps, (width, height))
 
             while True:
                 # 1フレームずつ取得する。
@@ -683,18 +688,6 @@ class RoomPlacement:
 
             writer.release()
             cap.release()
-
-    def graph(self, episode, episode_num_list, reward_cnt_list):
-        if episode % self.n_draw_graph == 0 and episode != 0:
-            fig = plt.figure()
-
-            dt = datetime.now().strftime("%m%d_%H%M")
-
-            x_axis = np.array(episode_num_list)
-            y_axis = np.array(reward_cnt_list)
-            plt.plot(x_axis, y_axis)
-
-            plt.savefig('./cv2_image/graph/graph' + str(dt) + '.png')
 
     def reward(self):
         pass

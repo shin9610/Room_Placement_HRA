@@ -17,7 +17,8 @@ def worker(params):
     random_state = np.random.RandomState(params['random_seed'])
 
     # RoomPlacement class : 室配置の環境と，その更新を定義するクラス
-    env = RoomPlacement()
+    env = RoomPlacement(params['draw_cv2_freq'], params['draw_movie_freq'], folder_name=params['folder_name'],
+                        folder_location=params['folder_location'])
     params['reward_dim'] = env.reward_len
 
     # nb_experimentsが謎
