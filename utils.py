@@ -237,11 +237,11 @@ class ExperienceReplay(object):
         if score > ave_score:
 
             # temp_Dのデータを回転してtemp_Dに格納する
-            # self.rotate_experience()
+            self.rotate_experience()
 
             # temp_DをDに格納する。
             self.D.extend(self.temp_D)
-            # print('store, exp_num: ' + str(len(self.D)))
+            print('store, exp_num: ' + str(len(self.D)))
 
         # temp_Dの消去
         self.temp_D.clear()
