@@ -43,18 +43,18 @@ class DQNExperiment(object):
         while self.episode_num < total_eps:
             print(Font.yellow + Font.bold + 'Training ... ' + str(self.episode_num) + '/' + str(total_eps) + Font.end,
                   end='\n')
-            eval_scores, elapsed_times, learn_times = self.do_episodes(number=eps_per_epoch, is_learning=is_learning)
-
+            _, elapsed_times, learn_times = self.do_episodes(number=eps_per_epoch, is_learning=is_learning)
+            # self.do_episodes(number=eps_per_epoch, is_learning=is_learning)
             # graph(self.episode_num, scores, self.draw_graph_freq)
 
             if is_testing:
-                # いちいちtestしてると長いので，学習時の試行でeval_scoreを代用
-                # eval_scores = self.do_episodes(number=eps_per_test, is_learning=False)
+                # print('testing')
+                eval_scores, _, _ = self.do_episodes(number=eps_per_test, is_learning=False)
                 self.eval_scores.append(eval_scores)
                 self.elapsed_times.append(elapsed_times)
                 self.learn_times.append(learn_times)
 
-                print('Score: ' + str(eval_scores) + '\n' + 'Time: ' + str(elapsed_times) + '\n' +
+                print('Eval_Score: ' + str(eval_scores) + '\n' + 'Time: ' + str(elapsed_times) + '\n' +
                       'Learn_Time: ' + str(learn_times) + '\n' + 'Total_time: ' + str(self.total_time))
 
                 # 動画の作成
@@ -79,7 +79,7 @@ class DQNExperiment(object):
         for num in range(number):
             start_time = time.time()
 
-            self._do_episode(is_learning=is_learning)
+            self._do_episode(is_learning=is_learning, evaluate=not is_learning)
             scores.append(self.score)
             steps.append(self.last_episode_steps)
             learn_times.append(self.learn_time)
@@ -155,6 +155,7 @@ class DQNExperiment(object):
                     if not evaluate:
                         self.ai.transitions.store_exp(self.score, self.ave_score)
                         self.ai.update_epsilon()
+                        # print('store_temp_D')
 
                     self.env.reset()
                     break

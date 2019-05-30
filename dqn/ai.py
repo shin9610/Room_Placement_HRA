@@ -39,7 +39,6 @@ class AI:
         self.annealing_episodes = annealing_episodes
         self.annealing_episode = (self.start_epsilon - self.final_epsilon) / self.annealing_episodes
 
-
         self.minibatch_size = minibatch_size
         self.update_freq = update_freq
         self.update_counter = 0
@@ -138,7 +137,6 @@ class AI:
             self.epsilon -= self.annealing_episode * 1
             if self.epsilon < self.final_epsilon:
                 self.epsilon = self.final_epsilon
-        print(self.epsilon)
 
     def get_max_action(self, states):
         # stateのreshape: 未実装
@@ -148,7 +146,11 @@ class AI:
         return np.argmax(q, axis=1)
     
     def get_action(self, states, evaluate):
-        eps = self.epsilon if not evaluate else self.test_epsilon
+        if not evaluate:
+            eps = self.epsilon
+        else:
+            eps = self.test_epsilon
+
         if self.rng.binomial(1, eps):
             return self.rng.randint(self.nb_actions)
         else:
