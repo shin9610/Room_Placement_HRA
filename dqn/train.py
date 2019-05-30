@@ -30,10 +30,11 @@ def worker(params):
     # AI class : 学習モデルの構築・コンパイルなどを定義するクラス
     ai = AI(env.state_shape, env.num_actions, params['action_dim'], params['reward_dim'],
                 history_len=params['history_len'], gamma=params['gamma'], learning_rate=params['learning_rate'],
-                epsilon=params['epsilon'], test_epsilon=params['test_epsilon'], 
-                minibatch_size=params['minibatch_size'],
-                replay_max_size=params['replay_max_size'], update_freq=params['update_freq'],
-                learning_frequency=params['learning_frequency'], num_units=params['num_units'], rng=random_state,
+                annealing=params['annealing'], annealing_episodes=params['annealing_episodes'],
+                epsilon=params['epsilon'], final_epsilon=params['final_epsilon'], test_epsilon=params['test_epsilon'],
+                minibatch_size=params['minibatch_size'], replay_max_size=params['replay_max_size'],
+                update_freq=params['update_freq'], learning_frequency=params['learning_frequency'],
+                num_units=params['num_units'], rng=random_state,
                 remove_features=params['remove_features'], use_mean=params['use_mean'], use_hra=params['use_hra'])
 
     # DQNExperiment class : 学習を試行するクラス

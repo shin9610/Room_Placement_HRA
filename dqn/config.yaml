@@ -12,10 +12,10 @@ step_max_len: 1500
 folder_location: '/results/'
 test: False
 
+annealing: True
+annealing_episodes: 5000
 epsilon: 1.0
-annealing: False
 final_epsilon: 0.05
-exploration_steps: 3000
 test_epsilon: 0.001
 
 learning_rate: 0.001

@@ -154,6 +154,7 @@ class DQNExperiment(object):
                     # 条件満たせばtemp_DをDへ保存
                     if not evaluate:
                         self.ai.transitions.store_exp(self.score, self.ave_score)
+                        self.ai.update_epsilon()
 
                     self.env.reset()
                     break

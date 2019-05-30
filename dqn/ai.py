@@ -16,7 +16,7 @@ floatX = 'float32'
 
 class AI:
     def __init__(self, state_shape, nb_actions, action_dim, reward_dim, history_len=1, gamma=.99,
-                 learning_rate=0.00025, epsilon=0.05, final_epsilon=0.05, test_epsilon=0.001,
+                 learning_rate=0.00025, annealing=True, annealing_episodes=5000, epsilon=1.0, final_epsilon=0.05, test_epsilon=0.001,
                 minibatch_size=32, replay_max_size=100, replay_memory_size=50000,
                  update_freq=50, learning_frequency=1,
                  num_units=250, remove_features=False, use_mean=False, use_hra=True, rng=None):
@@ -35,6 +35,10 @@ class AI:
         self.start_epsilon = epsilon
         self.test_epsilon = test_epsilon
         self.final_epsilon = final_epsilon
+        self.annealing = annealing
+        self.annealing_episodes = annealing_episodes
+        self.annealing_episode = (self.start_epsilon - self.final_epsilon) / self.annealing_episodes
+
 
         self.minibatch_size = minibatch_size
         self.update_freq = update_freq
@@ -128,10 +132,17 @@ class AI:
         self._train_on_batch = K.function(inputs=[s, a, r, s2, t], outputs=[costs], updates=updates)
         self.predict_network = K.function(inputs=[s], outputs=qs)
         self.update_weights = K.function(inputs=[], outputs=[], updates=target_updates)
-        
+
+    def update_epsilon(self):
+        if self.epsilon > self.final_epsilon:
+            self.epsilon -= self.annealing_episode * 1
+            if self.epsilon < self.final_epsilon:
+                self.epsilon = self.final_epsilon
+        print(self.epsilon)
+
     def get_max_action(self, states):
         # stateのreshape: 未実装
-        # states = self._reshape(states)
+        states = np.expand_dims(states, axis=0)
         q = np.array(self.predict_network([states]))
         q = np.sum(q, axis=0)
         return np.argmax(q, axis=1)
