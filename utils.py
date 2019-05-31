@@ -15,7 +15,6 @@ from collections import deque
 
 from keras.models import model_from_config
 
-# test
 
 def flatten(l):
     return [item for sublist in l for item in sublist]
@@ -247,7 +246,7 @@ class ExperienceReplay(object):
 
             # temp_DをDに格納する。
             self.D.extend(self.temp_D)
-            # print('store, exp_num: ' + str(len(self.D)))
+            print('store, exp_num: ' + str(len(self.D)))
 
         # temp_Dの消去
         self.temp_D.clear()

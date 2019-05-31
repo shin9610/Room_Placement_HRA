@@ -48,7 +48,7 @@ class DQNExperiment(object):
             # graph(self.episode_num, scores, self.draw_graph_freq)
 
             if is_testing:
-                # print('testing')
+                print('testing')
                 eval_scores, _, _ = self.do_episodes(number=eps_per_test, is_learning=False)
                 self.eval_scores.append(eval_scores)
                 self.elapsed_times.append(elapsed_times)
@@ -146,13 +146,11 @@ class DQNExperiment(object):
 
                 # episode終了時
                 if game_over == True:
-                    self.temp_scores += self.score
-
-                    self.ave_score, self.temp_scores = \
-                        compute_ave(self.score, self.temp_scores, self.ave_score, self.episode_num, div=20)
-
                     # 条件満たせばtemp_DをDへ保存
                     if not evaluate:
+                        self.temp_scores += self.score
+                        self.ave_score, self.temp_scores = \
+                            compute_ave(self.score, self.temp_scores, self.ave_score, self.episode_num, div=20)
                         self.ai.transitions.store_exp(self.score, self.ave_score)
                         self.ai.update_epsilon()
                         # print('store_temp_D')
@@ -167,7 +165,8 @@ class DQNExperiment(object):
             #     term = True
 
         # self.fps = int(self.last_episode_steps / max(0.1, (time.time() - start_time)))
-                
+
+        print(self.score)
         return rewards
 
     def _reset(self):

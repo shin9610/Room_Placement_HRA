@@ -154,7 +154,7 @@ class AI:
         if self.rng.binomial(1, eps):
             return self.rng.randint(self.nb_actions)
         else:
-            return self.get_max_action(states=states)
+            return self.get_max_action(states=states)[0]
 
     def train_on_batch(self, s, a, r, s2, t):
         # 元コード　expand_dimsをしている

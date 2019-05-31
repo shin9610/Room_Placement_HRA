@@ -504,15 +504,24 @@ class RoomPlacement:
         if self.your_agent[now_agent] in self.neighbor_list:
             reward_connect = self.reward_scheme['connect']
             head_reward[0] = self.reward_scheme['connect']
+
+            # アスペクト比報酬を判定
+            if self.aspect >= 0.8:
+                reward_shape = self.reward_scheme['shape']
+                head_reward[1] = self.reward_scheme['shape']
+            else:
+                reward_shape = 0.0
+
         else:
             reward_connect = 0.0
+            reward_shape = 0.0
 
         # アスペクト比報酬を判定
-        if self.aspect >= 0.5:
-            reward_shape = self.reward_scheme['shape']
-            head_reward[1] = self.reward_scheme['shape']
-        else:
-            reward_shape = 0.0
+        # if self.aspect >= 0.8:
+        #     reward_shape = self.reward_scheme['shape']
+        #     head_reward[1] = self.reward_scheme['shape']
+        # else:
+        #     reward_shape = 0.0
 
         return reward_connect + reward_shape, head_reward
 

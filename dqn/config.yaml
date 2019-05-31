@@ -6,7 +6,7 @@ is_learning: True
 eps_per_epoch: 10
 max_start_nullops: 0
 is_testing: True
-eps_per_test: 10
+eps_per_test: 1
 episode_max_len: 2500
 step_max_len: 1500
 folder_location: '/results/'
@@ -29,5 +29,5 @@ action_dim: 1
 num_units: 250
 
 draw_graph_freq: 10
-draw_cv2_freq: 1000
-draw_movie_freq: 1000
+draw_cv2_freq: 500
+draw_movie_freq: 500
