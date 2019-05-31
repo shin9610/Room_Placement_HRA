@@ -128,9 +128,13 @@ def create_folder(folder_location, folder_name):
     while os.path.exists(os.getcwd() + folder_location + folder_name + str(i)):
         i += 1
     # folder_name = os.getcwd() + folder_location + folder_name + str(i)
-    folder_location = folder_location.replace('/', '')
-    folder_name = os.path.join(os.path.abspath('../'), folder_location, folder_name + str(i) + str(t))
+    # folder_location = folder_location.replace('/', '')
+    # folder_name = os.path.join(os.path.abspath('../'), folder_location, folder_name + str(i) + str(t))
+    # os.mkdir(folder_name)
+
+    folder_name = os.getcwd() + folder_location + folder_name + str(i)
     os.mkdir(folder_name)
+
     folder_name_images = os.path.join(folder_name, str('images'))
     os.mkdir(folder_name_images)
     folder_name_movies = os.path.join(folder_name, str('movies'))

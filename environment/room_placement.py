@@ -1,19 +1,17 @@
 # coding:utf-8
-from operator import itemgetter
-import numpy as np
-import os
-import cv2
-import glob
 import copy
+import glob
+import os
 import random
+from datetime import datetime
+
+import cv2
+import matplotlib.animation as animation
+import matplotlib.pyplot as plt
+import numpy as np
 from PIL import Image
 from scipy import ndimage
 from scipy.ndimage import label
-from datetime import datetime
-
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-from utils.utils import create_folder
 
 
 class RoomPlacement:

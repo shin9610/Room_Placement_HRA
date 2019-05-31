@@ -1,12 +1,12 @@
 import os
-import click
-import yaml
-import numpy as np
 
-from utils.utils import Font, set_params
+import numpy as np
+import yaml
+
+from dqn.ai import AI
 from dqn.experiment import DQNExperiment
 from environment.room_placement import RoomPlacement
-from dqn.ai import AI
+from utils import Font, set_params
 
 np.set_printoptions(suppress=True, linewidth=200, precision=2)
 floatX = 'float32'

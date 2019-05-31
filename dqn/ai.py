@@ -1,16 +1,12 @@
 import time
-import numpy as np
-from collections import deque
-from keras import backend as K
-from keras.optimizers import RMSprop
-import tensorflow as tf
 from copy import deepcopy
 
+import numpy as np
+from keras import backend as K
+from keras.optimizers import RMSprop
 
-from utils.utils import ExperienceReplay, flatten, slice_tensor_tensor
-from dqn.model import build_dense, build_cnn
-import dqn.experiment as expt
-from environment.room_placement import RoomPlacement
+from dqn.model import build_cnn
+from utils import ExperienceReplay, flatten, slice_tensor_tensor
 
 floatX = 'float32'
 

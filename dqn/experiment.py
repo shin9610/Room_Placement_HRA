@@ -1,7 +1,10 @@
-import time
-import numpy as np
-from utils.utils import Font, plot_and_write, create_folder, compute_ave
 import copy
+import time
+
+import numpy as np
+
+from utils import Font, plot_and_write, create_folder, compute_ave
+
 
 class DQNExperiment(object):
     def __init__(self, env, ai, episode_max_len, history_len=1, max_start_nullops=1, replay_min_size=0,
