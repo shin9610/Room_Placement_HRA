@@ -73,5 +73,5 @@ def run(mode):
         worker(params)
 
 
-if __name__ == '__main__':
-    run(mode='hra+1')
+# if __name__ == '__main__':
+#     run(mode='hra+1')
