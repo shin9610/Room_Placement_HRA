@@ -7,7 +7,7 @@ import tensorflow as tf
 from copy import deepcopy
 
 
-from utils import ExperienceReplay, flatten, slice_tensor_tensor
+from utils.utils import ExperienceReplay, flatten, slice_tensor_tensor
 from dqn.model import build_dense, build_cnn
 import dqn.experiment as expt
 from environment.room_placement import RoomPlacement

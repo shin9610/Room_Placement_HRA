@@ -3,7 +3,7 @@ import click
 import yaml
 import numpy as np
 
-from utils import Font, set_params
+from utils.utils import Font, set_params
 from dqn.experiment import DQNExperiment
 from environment.room_placement import RoomPlacement
 from dqn.ai import AI

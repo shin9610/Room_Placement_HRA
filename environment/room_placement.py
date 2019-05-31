@@ -13,7 +13,7 @@ from datetime import datetime
 
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-from utils import create_folder
+from utils.utils import create_folder
 
 
 class RoomPlacement:

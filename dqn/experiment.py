@@ -1,6 +1,6 @@
 import time
 import numpy as np
-from utils import Font, plot_and_write, create_folder, compute_ave
+from utils.utils import Font, plot_and_write, create_folder, compute_ave
 import copy
 
 class DQNExperiment(object):
