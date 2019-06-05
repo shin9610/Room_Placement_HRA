@@ -351,17 +351,20 @@ class RoomPlacement:
         # 移動時の削除分エージェント
         index_del = np.array(np.where(temp_ == 1)).T.tolist()
 
-        # now_agent_listの更新
-        now_agent_list.extend(index_add)
-        for list in index_del:
-            now_agent_list.remove(list)
+        # 制約面積条件
+        if len(now_agent_list) - len(index_del) > self.room_downer:
 
-        # 分裂判定→　移動後のエージェント更新
-        if self.split_search(now_agent_list):
-            for list in index_add:
-                self.state_t[list[0], list[1]] = now_agent
+            # now_agent_listの更新
+            now_agent_list.extend(index_add)
             for list in index_del:
-                self.state_t[list[0], list[1]] = -1
+                now_agent_list.remove(list)
+
+            # 分裂判定→　移動後のエージェント更新
+            if self.split_search(now_agent_list):
+                for list in index_add:
+                    self.state_t[list[0], list[1]] = now_agent
+                for list in index_del:
+                    self.state_t[list[0], list[1]] = -1
         else:
             pass
 
