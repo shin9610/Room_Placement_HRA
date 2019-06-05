@@ -109,7 +109,7 @@ class AI:
 
             if self.use_hra:
                 # cost = lossの計算
-                cost = self._compute_cost(qs[-1], a, r[:, 1], t, q2s[-1])
+                cost = self._compute_cost(qs[-1], a, r[:, i], t, q2s[-1])
                 optimizer = RMSprop(lr=self.learning_rate, rho=.95, epsilon=1e-7)
 
                 # 学習設定
