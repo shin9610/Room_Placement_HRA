@@ -353,11 +353,20 @@ class RoomPlacement:
 
         # 制約面積条件
         if len(now_agent_list) - len(index_del) > self.room_downer:
-
-            # now_agent_listの更新
-            now_agent_list.extend(index_add)
-            for list in index_del:
-                now_agent_list.remove(list)
+            # 面積が一定
+            if len(index_add) == len(index_del):
+                # now_agent_listの更新
+                now_agent_list.extend(index_add)
+                for list in index_del:
+                    now_agent_list.remove(list)
+            # 面積が一定ではない
+            else:
+                # index_add分だけindex_delの数を調整
+                index_del = index_del[:len(index_add)]
+                # now_agent_listの更新
+                now_agent_list.extend(index_add)
+                for list in index_del:
+                    now_agent_list.remove(list)
 
             # 分裂判定→　移動後のエージェント更新
             if self.split_search(now_agent_list):
@@ -365,6 +374,10 @@ class RoomPlacement:
                     self.state_t[list[0], list[1]] = now_agent
                 for list in index_del:
                     self.state_t[list[0], list[1]] = -1
+            # 分裂しているのでpass
+            else:
+                pass
+        # 制約面積条件に乗らないのでpass
         else:
             pass
 
