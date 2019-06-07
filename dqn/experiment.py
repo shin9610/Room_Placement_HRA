@@ -63,6 +63,7 @@ class DQNExperiment(object):
                 # 動画の作成
                 self.env.movie(self.episode_num, self.folder_name_images, self.folder_name_movies)
 
+                # グラフの作成
                 plot_and_write(plot_dict={'scores': self.eval_scores}, loc=self.folder_name + "/scores",
                                x_label="Episodes", y_label="Scores", title="", kind='line', legend=True)
                 plot_and_write(plot_dict={'times': self.elapsed_times}, loc=self.folder_name + "/times",
