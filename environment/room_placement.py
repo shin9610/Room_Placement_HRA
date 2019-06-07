@@ -353,34 +353,36 @@ class RoomPlacement:
         index_del = np.array(np.where(temp_ == 1)).T.tolist()
 
         # 制約面積条件　→　報酬の場合は逃す
-        if len(now_agent_list) - len(index_del) > self.room_downer:
-            # 面積が一定
-            if len(index_add) == len(index_del):
-                # now_agent_listの更新
-                now_agent_list.extend(index_add)
-                for list in index_del:
-                    now_agent_list.remove(list)
-            # 面積が一定ではない
-            else:
-                # index_add分だけindex_delの数を調整
-                index_del = index_del[:len(index_add)]
-                # now_agent_listの更新
-                now_agent_list.extend(index_add)
-                for list in index_del:
-                    now_agent_list.remove(list)
+        # if len(now_agent_list) - len(index_del) > self.room_downer:
 
-            # 分裂判定→　移動後のエージェント更新
-            if self.split_search(now_agent_list):
-                for list in index_add:
-                    self.state_t[list[0], list[1]] = now_agent
-                for list in index_del:
-                    self.state_t[list[0], list[1]] = -1
-            # 分裂しているのでpass
-            else:
-                pass
-        # 制約面積条件に乗らないのでpass
+        # 面積が一定
+        if len(index_add) == len(index_del):
+            # now_agent_listの更新
+            now_agent_list.extend(index_add)
+            for list in index_del:
+                now_agent_list.remove(list)
+        # 面積が一定ではない
+        else:
+            # index_add分だけindex_delの数を調整
+            index_del = index_del[:len(index_add)]
+            # now_agent_listの更新
+            now_agent_list.extend(index_add)
+            for list in index_del:
+                now_agent_list.remove(list)
+
+        # 分裂判定→　移動後のエージェント更新
+        if self.split_search(now_agent_list):
+            for list in index_add:
+                self.state_t[list[0], list[1]] = now_agent
+            for list in index_del:
+                self.state_t[list[0], list[1]] = -1
+        # 分裂しているのでpass
         else:
             pass
+
+        # 制約面積条件に乗らないのでpass
+        # else:
+        #     pass
 
     def update_expand(self, action, now_agent):
         temp = np.zeros((self.col, self.row))
@@ -418,10 +420,10 @@ class RoomPlacement:
 
         # 面積の制約条件
         if len(index_add) != 0:
-            if len(now_agent_list) + len(index_add) <= self.room_upper:
-                # 拡張後のエージェント更新
-                for list in index_add:
-                    self.state_t[list[0], list[1]] = now_agent
+        #     if len(now_agent_list) + len(index_add) <= self.room_upper:
+            # 拡張後のエージェント更新
+            for list in index_add:
+                self.state_t[list[0], list[1]] = now_agent
 
     def update_reduction(self, action, now_agent):
         temp = np.zeros((self.col, self.row))
@@ -461,10 +463,10 @@ class RoomPlacement:
             # 削除分の個数が元のエージェントの個数を下回るとき
             if len(now_agent_list) > len(index_del):
                 # 面積の制約条件を満たすとき
-                if len(now_agent_list) - len(index_del) >= self.room_downer:
-                    # 削除後の更新
-                    for list in index_del:
-                        self.state_t[list[0], list[1]] = -1
+                # if len(now_agent_list) - len(index_del) >= self.room_downer:
+                # 削除後の更新
+                for list in index_del:
+                    self.state_t[list[0], list[1]] = -1
 
     def split_search(self, now_agent_list):
         temp = np.zeros((self.col, self.row))
