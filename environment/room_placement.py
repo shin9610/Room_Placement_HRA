@@ -27,7 +27,8 @@ class RoomPlacement:
 
         # 報酬と終了条件の初期化
         self.reward = 0
-        self.reward_scheme = {'connect': +1.0, 'shape': +1.0}
+        self.reward_scheme = {'connect': +1.0, 'shape': +1.0, 'area': +1.0}
+        # self.reward_scheme = {'connect': +1.0, 'shape': +1.0}
         # self.reward_scheme = {'connect': +1.0}
         self.reward_len = len(self.reward_scheme)
         self.reward_channels = []
@@ -351,7 +352,7 @@ class RoomPlacement:
         # 移動時の削除分エージェント
         index_del = np.array(np.where(temp_ == 1)).T.tolist()
 
-        # 制約面積条件
+        # 制約面積条件　→　報酬の場合は逃す
         if len(now_agent_list) - len(index_del) > self.room_downer:
             # 面積が一定
             if len(index_add) == len(index_del):
@@ -415,7 +416,7 @@ class RoomPlacement:
         # 移動時の追加分エージェント
         index_add = np.array(np.where(temp == 1)).T.tolist()
 
-        # 面積の制約条件で分岐
+        # 面積の制約条件
         if len(index_add) != 0:
             if len(now_agent_list) + len(index_add) <= self.room_upper:
                 # 拡張後のエージェント更新
@@ -542,27 +543,33 @@ class RoomPlacement:
 
         return modified_aspect
 
+    def area_search(self, now_agent):
+        now_agent_list = np.array(np.where(self.state_t == now_agent)).T
+        return len(now_agent_list)
+
     def reward_condition(self, now_agent):
         # チャンネル作成
         head_reward = np.zeros(len(self.reward_scheme), dtype=np.float32)
 
         # 接続報酬を判定
         if self.your_agent[now_agent] in self.neighbor_list:
-            reward_connect = self.reward_scheme['connect']
             head_reward[0] = self.reward_scheme['connect']
 
             # アスペクト比報酬を判定
             if self.aspect >= 0.8:
-                reward_shape = self.reward_scheme['shape']
                 head_reward[1] = self.reward_scheme['shape']
             else:
-                reward_shape = 0.0
+                pass
 
+            # 面積報酬を判定
+            if self.room_downer <= self.area_search(now_agent) <= self.room_upper:
+                head_reward[2] = self.reward_scheme['area']
+            else:
+                pass
         else:
-            reward_connect = 0.0
-            reward_shape = 0.0
+            pass
 
-        return reward_connect + reward_shape, head_reward
+        return sum(head_reward), head_reward
         # return reward_connect, head_reward
 
     def number_to_color(self, num):
