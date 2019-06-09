@@ -49,7 +49,7 @@ class RoomPlacement:
         self.neighbor_list = []
 
         # 室の制約条件
-        self.room_upper = 30
+        self.room_upper = 20
         self.room_downer = 10
 
         # 環境の初期設定　空地 = -1, 外形 = -2, 室 = 0,1,2 ~
@@ -328,7 +328,7 @@ class RoomPlacement:
         for list in self.site_0_list:
             temp[list[0], list[1]] = 2
 
-        # エージェントの位置を3で塗りつぶす
+        # 自分含め，エージェントの位置を3で塗りつぶす
         for i in range(self.n_agents):
             agent_arr = np.array(np.where(self.state_t == i)).T
             agent_list = agent_arr.tolist()
@@ -355,20 +355,25 @@ class RoomPlacement:
         # 制約面積条件　→　報酬の場合は逃す
         # if len(now_agent_list) - len(index_del) > self.room_downer:
 
-        # 面積が一定
-        if len(index_add) == len(index_del):
-            # now_agent_listの更新
-            now_agent_list.extend(index_add)
-            for list in index_del:
-                now_agent_list.remove(list)
-        # 面積が一定ではない
-        else:
-            # index_add分だけindex_delの数を調整
-            index_del = index_del[:len(index_add)]
-            # now_agent_listの更新
-            now_agent_list.extend(index_add)
-            for list in index_del:
-                now_agent_list.remove(list)
+        # # addとdelが等しい
+        # if len(index_add) == len(index_del):
+        #     # now_agent_listの更新
+        #     now_agent_list.extend(index_add)
+        #     for list in index_del:
+        #         now_agent_list.remove(list)
+        # # addとdelが等しくない
+        # else:
+        #     # index_add分だけindex_delの数を調整
+        #     index_del = index_del[:len(index_add)]
+        #     # now_agent_listの更新
+        #     now_agent_list.extend(index_add)
+        #     for list in index_del:
+        #         now_agent_list.remove(list)
+
+        # now_agent_listの更新
+        now_agent_list.extend(index_add)
+        for list in index_del:
+            now_agent_list.remove(list)
 
         # 分裂判定→　移動後のエージェント更新
         if self.split_search(now_agent_list):

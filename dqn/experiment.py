@@ -52,6 +52,7 @@ class DQNExperiment(object):
 
             if is_testing:
                 print('testing')
+                print('epsilon: ' + str(self.ai.epsilon))
                 eval_scores, _, _ = self.do_episodes(number=eps_per_test, is_learning=False)
                 self.eval_scores.append(eval_scores)
                 self.elapsed_times.append(elapsed_times)

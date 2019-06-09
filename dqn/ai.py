@@ -138,7 +138,9 @@ class AI:
         # stateのreshape: 未実装
         states = np.expand_dims(states, axis=0)
         q = np.array(self.predict_network([states]))
+        # print(q)
         q = np.sum(q, axis=0)
+        # print(q)
         return np.argmax(q, axis=1)
     
     def get_action(self, states, evaluate):
