@@ -18,8 +18,12 @@ class DQNExperiment(object):
         self.score = 0
         self.temp_scores = 0
         self.ave_score = 0
+        self.score_channel = np.zeros(env.reward_len)
         self.eval_steps = []
         self.eval_scores = []
+        self.eval_scores_connect = []
+        self.eval_scores_shape = []
+        self.eval_scores_area = []
         self.elapsed_times = []
         self.total_time = 0
         self.learn_time = 0
@@ -46,15 +50,21 @@ class DQNExperiment(object):
         while self.episode_num < total_eps:
             print(Font.yellow + Font.bold + 'Training ... ' + str(self.episode_num) + '/' + str(total_eps) + Font.end,
                   end='\n')
-            _, elapsed_times, learn_times = self.do_episodes(number=eps_per_epoch, is_learning=is_learning)
+            _, _, _, _, elapsed_times, learn_times = self.do_episodes(number=eps_per_epoch, is_learning=is_learning)
             # self.do_episodes(number=eps_per_epoch, is_learning=is_learning)
             # graph(self.episode_num, scores, self.draw_graph_freq)
 
             if is_testing:
                 print('testing')
                 print('epsilon: ' + str(self.ai.epsilon))
-                eval_scores, _, _ = self.do_episodes(number=eps_per_test, is_learning=False)
+                eval_scores, eval_scores_connect, eval_scores_shape, eval_scores_area, _, _ = \
+                    self.do_episodes(number=eps_per_test, is_learning=False)
+
                 self.eval_scores.append(eval_scores)
+                self.eval_scores_connect.append(eval_scores_connect)
+                self.eval_scores_shape.append(eval_scores_shape)
+                self.eval_scores_area.append(eval_scores_area)
+
                 self.elapsed_times.append(elapsed_times)
                 self.learn_times.append(learn_times)
 
@@ -65,8 +75,14 @@ class DQNExperiment(object):
                 self.env.movie(self.episode_num, self.folder_name_images, self.folder_name_movies)
 
                 # グラフの作成
-                plot_and_write(plot_dict={'scores': self.eval_scores}, loc=self.folder_name + "/scores",
+                # plot_and_write(plot_dict={'scores': self.eval_scores}, loc=self.folder_name + "/scores",
+                #                x_label="Episodes", y_label="Scores", title="", kind='line', legend=True)
+
+                plot_and_write(plot_dict={'scores': self.eval_scores, 'scores_connect': self.eval_scores_connect,
+                                          'scores_shape': self.eval_scores_shape, 'scores_area': self.eval_scores_area},
+                               loc=self.folder_name + "/scores",
                                x_label="Episodes", y_label="Scores", title="", kind='line', legend=True)
+
                 plot_and_write(plot_dict={'times': self.elapsed_times}, loc=self.folder_name + "/times",
                                x_label="Episodes", y_label="Times", title="", kind='line', legend=True)
                 plot_and_write(plot_dict={'learn_times': self.learn_times}, loc=self.folder_name + "/learn_times",
@@ -79,6 +95,9 @@ class DQNExperiment(object):
         times = []
         learn_times = []
         scores = []
+        scores_connect = []
+        scores_shape = []
+        scores_area = []
         steps = []
 
         for num in range(number):
@@ -86,6 +105,10 @@ class DQNExperiment(object):
 
             self._do_episode(is_learning=is_learning, evaluate=not is_learning)
             scores.append(self.score)
+            scores_connect.append(self.score_channel[0])
+            scores_shape.append(self.score_channel[1])
+            scores_area.append(self.score_channel[2])
+
             steps.append(self.last_episode_steps)
             learn_times.append(self.learn_time)
             # print(self.learn_time)
@@ -102,7 +125,8 @@ class DQNExperiment(object):
                 # episode_numを足す
                 self.episode_num += 1
 
-        return np.mean(scores), np.mean(times), np.mean(learn_times)
+        return np.mean(scores), np.mean(scores_connect), np.mean(scores_shape), np.mean(scores_area), \
+               np.mean(times), np.mean(learn_times)
 
     def _do_episode(self, is_learning=True, evaluate=False):
         rewards = []
@@ -132,6 +156,7 @@ class DQNExperiment(object):
 
                 rewards.append(reward_t)
                 self.score += reward_t
+                self.score_channel += np.array(reward_channels)
 
                 # replayのminより経験の数が多い　＋　学習フラグあり　＋　replayの頻度
                 if len(self.ai.transitions.D) >= self.replay_min_size and is_learning and \
@@ -177,6 +202,7 @@ class DQNExperiment(object):
     def _reset(self):
         self.last_episode_steps = 0
         self.score = 0
+        self.score_channel = np.zeros(self.env.reward_len)
         self.learn_time = 0
 
         assert self.max_start_nullops >= self.history_len or self.max_start_nullops == 0

@@ -22,7 +22,7 @@ class RoomPlacement:
         self.size = self.col * self.row
 
         # 可能な行動パターン
-        self.enable_actions = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
+        self.enable_actions = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
         self.num_actions = len(self.enable_actions)
 
         # 報酬と終了条件の初期化
@@ -286,6 +286,8 @@ class RoomPlacement:
             self.update_expand(action, now_agent)
         elif 8 <= action <= 11:
             self.update_reduction(action, now_agent)
+        elif action == 12:
+            self.update_non(action)
 
         self.state_t_1 = self.state_t
 
@@ -473,6 +475,10 @@ class RoomPlacement:
                 for list in index_del:
                     self.state_t[list[0], list[1]] = -1
 
+    def update_non(self, action):
+        if action == 12:
+            pass
+
     def split_search(self, now_agent_list):
         temp = np.zeros((self.col, self.row))
 
@@ -615,7 +621,7 @@ class RoomPlacement:
             grid_pitch = 10
             action_names = ('move_up', 'move_right', 'move_down', 'move_left',
                             'expand_up', 'expand_right', 'expand_down', 'expand_left',
-                            'reduction_up', 'reduction_right', 'reduction_down', 'reduction_left')
+                            'reduction_up', 'reduction_right', 'reduction_down', 'reduction_left', 'stop')
 
             # siteの出力
             site_list = self.site_0_list
