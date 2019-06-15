@@ -145,13 +145,17 @@ class DQNExperiment(object):
                 
                 state_t = copy.deepcopy(next_state_t_1)
 
+                # 行動前の報酬の観測
+                _, pre_reward_channels = self.env.reward_condition(now_agent)
+
                 # 行動選択　→　last_stateをどこから持ってくるか
-                action = self.ai.get_action(state_t, evaluate)
+                action = self.ai.get_action(state_t, evaluate, pre_reward_channels)
 
                 # 環境にて行動を実行
                 self.env.execute_action(action, now_agent)
 
-                # 環境の観測
+                # 行動後の環境の観測
+                # state_t_1, next_state_t_1, reward_t, reward_channels, game_over = self.env.observe()
                 state_t_1, next_state_t_1, reward_t, reward_channels, game_over = self.env.observe()
 
                 rewards.append(reward_t)
@@ -167,7 +171,7 @@ class DQNExperiment(object):
 
                 # temp_Dを保存
                 if not evaluate:
-                    self.ai.transitions.store_temp_exp(np.array((state_t)), action, reward_channels, np.array((state_t_1)), game_over)
+                    self.ai.transitions.store_temp_exp(np.array((state_t)), action, reward_channels, np.array((state_t_1)), False)
                     self.total_training_steps += 1
 
                 # フレーム画像の描画

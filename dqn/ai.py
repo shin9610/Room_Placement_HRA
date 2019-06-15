@@ -11,7 +11,7 @@ from utils import ExperienceReplay, flatten, slice_tensor_tensor
 floatX = 'float32'
 
 class AI:
-    def __init__(self, state_shape, nb_actions, action_dim, reward_dim, history_len=1, gamma=.99,
+    def __init__(self, state_shape, nb_actions, action_dim, reward_dim, history_len=1, gamma=.99, is_aggregator=True,
                  learning_rate=0.00025, annealing=True, annealing_episodes=5000, epsilon=1.0, final_epsilon=0.05, test_epsilon=0.001,
                 minibatch_size=32, replay_max_size=100, replay_memory_size=50000,
                  update_freq=50, learning_frequency=1,
@@ -26,6 +26,9 @@ class AI:
         self.gamma = gamma
         self.learning_rate = learning_rate
         self.learning_rate_start = learning_rate
+
+        self.is_aggregator = is_aggregator
+        self.agg_w = []
 
         self.epsilon = epsilon
         self.start_epsilon = epsilon
@@ -139,20 +142,39 @@ class AI:
         states = np.expand_dims(states, axis=0)
         q = np.array(self.predict_network([states]))
         # print(q)
-        q = np.sum(q, axis=0)
+        # print(self.agg_w)
+        # aggのweightを掛ける
+        q = q * self.agg_w
         # print(q)
+        q = np.sum(q, axis=0)
         return np.argmax(q, axis=1)
-    
-    def get_action(self, states, evaluate):
+
+    def get_action(self, states, evaluate, pre_reward_channels):
         if not evaluate:
             eps = self.epsilon
         else:
             eps = self.test_epsilon
 
+        self.aggregator(pre_reward_channels)
+
+        # εグリーディ
         if self.rng.binomial(1, eps):
             return self.rng.randint(self.nb_actions)
         else:
             return self.get_max_action(states=states)[0]
+
+    def aggregator(self, reward_channels):
+
+        if self.is_aggregator:
+            # 接続条件を満たしていない場合
+            if reward_channels[0] == 0:
+                self.agg_w = np.array([[[5]], [[1]], [[1]]])
+
+            # 接続条件を満たしている場合
+            else:
+                self.agg_w = np.array([[[1]], [[5]], [[5]]])
+        else:
+            self.agg_w = np.array([[[1]], [[1]], [[1]]])
 
     def train_on_batch(self, s, a, r, s2, t):
         # 元コード　expand_dimsをしている

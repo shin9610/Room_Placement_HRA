@@ -295,14 +295,7 @@ class RoomPlacement:
         self.state_4chan_t = self.state_4chan(now_agent, next_flag=False)
         self.next_state_4chan_t = self.state_4chan(now_agent, next_flag=True)
 
-        # 近傍判定
-        self.neighbor_list = self.neighbor_search(now_agent)
-
-        # アスペクト比判定
-        self.aspect = self.aspect_search(now_agent)
-
         # 報酬判定 reward: 報酬の合計，channels: 報酬のチャネル
-        # self.reward, self.reward_channels  = self.reward_condition(now_agent)
         self.reward, self.reward_channels = self.reward_condition(now_agent)
 
         self.step_id += 1
@@ -565,11 +558,11 @@ class RoomPlacement:
         head_reward = np.zeros(len(self.reward_scheme), dtype=np.float32)
 
         # 接続報酬を判定
-        if self.your_agent[now_agent] in self.neighbor_list:
+        if self.your_agent[now_agent] in self.neighbor_search(now_agent):
             head_reward[0] = self.reward_scheme['connect']
 
             # アスペクト比報酬を判定
-            if self.aspect >= 0.8:
+            if self.aspect_search(now_agent) >= 0.8:
                 head_reward[1] = self.reward_scheme['shape']
             else:
                 pass
