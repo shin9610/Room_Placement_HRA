@@ -38,7 +38,10 @@ class RoomPlacement:
         self.game_over = False
 
         # 室の初期設定
-        self.random_flag = False
+        if not test:
+            self.random_flag = False
+        else:
+            self.random_flag = True
         self.n_agents = 8
         self.room_col = 3
         self.room_row = 3
@@ -49,7 +52,7 @@ class RoomPlacement:
         self.your_agent = [1, 0, 3, 2, 5, 4, 7, 6]
         self.neighbor_list = []
 
-        # 室の制約条件
+        # 室の面積条件
         self.room_upper = 20
         self.room_downer = 10
 
