@@ -17,8 +17,9 @@ def worker(params):
     random_state = np.random.RandomState(params['random_seed'])
 
     # RoomPlacement class : 室配置の環境と，その更新を定義するクラス
-    env = RoomPlacement(params['draw_cv2_freq'], params['draw_movie_freq'], folder_name=params['folder_name'],
-                        folder_location=params['folder_location'])
+    env = RoomPlacement(params['draw_cv2_freq'], params['draw_movie_freq'], params['test_draw_cv2_freq'],
+                        params['test_draw_movie_freq'], folder_name=params['folder_name'],
+                        folder_location=params['folder_location'], test=params['test'])
     params['reward_dim'] = env.reward_len
 
     # nb_experimentsが謎
@@ -35,7 +36,7 @@ def worker(params):
                 epsilon=params['epsilon'], final_epsilon=params['final_epsilon'], test_epsilon=params['test_epsilon'],
                 minibatch_size=params['minibatch_size'], replay_max_size=params['replay_max_size'],
                 update_freq=params['update_freq'], learning_frequency=params['learning_frequency'],
-                num_units=params['num_units'], rng=random_state,
+                num_units=params['num_units'], rng=random_state, test=params['test'],
                 remove_features=params['remove_features'], use_mean=params['use_mean'], use_hra=params['use_hra'])
 
     # DQNExperiment class : 学習を試行するクラス
@@ -45,16 +46,20 @@ def worker(params):
                              folder_name=params['folder_name'], testing=params['test'], score_window_size=100,
                              rng=random_state, draw_graph_freq=params['draw_graph_freq'])
     
-
+    # training
     if not params['test']:
         with open(expt.folder_name + '/config.yaml', 'w') as y:
             yaml.safe_dump(params, y)  # saving params for future reference
         expt.do_training(total_eps=params['total_eps'], eps_per_epoch=params['eps_per_epoch'],
                              eps_per_test=params['eps_per_test'], is_learning=True, is_testing=True)
-    else:
-        raise NotImplementedError
 
-    
+    # testing
+    else:
+        with open(expt.folder_name + '/config.yaml', 'w') as y:
+            yaml.safe_dump(params, y)  # saving params for future reference
+        expt.do_testing(total_test_eps=params['total_test_eps'],
+                             eps_per_test=params['eps_per_test'], is_learning=False, is_testing=True)
+
 
 def run(mode):
     # modeの選択　→　hra+1

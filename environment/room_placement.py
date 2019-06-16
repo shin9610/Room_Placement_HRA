@@ -15,7 +15,8 @@ from scipy.ndimage import label
 
 
 class RoomPlacement:
-    def __init__(self, draw_cv2_freq, draw_movie_freq, folder_name, folder_location):
+    def __init__(self, draw_cv2_freq, draw_movie_freq, test_draw_cv2_freq, test_draw_movie_freq,
+                 folder_name, folder_location, test):
         # 盤面のサイズ
         self.col = 28
         self.row = 28
@@ -68,9 +69,13 @@ class RoomPlacement:
         # self.state_4chan_t = copy.deepcopy(self.state_4chan_0)
 
         # 描画系の変数
+        if not test:
+            self.draw_cv2_freq = draw_cv2_freq
+            self.draw_movie_freq = draw_movie_freq
+        else:
+            self.draw_cv2_freq = test_draw_cv2_freq
+            self.draw_movie_freq = test_draw_movie_freq
 
-        self.draw_cv2_freq = draw_cv2_freq
-        self.draw_movie_freq = draw_movie_freq
 
     # 盤面の初期化
     def init_square(self):
@@ -558,22 +563,34 @@ class RoomPlacement:
         head_reward = np.zeros(len(self.reward_scheme), dtype=np.float32)
 
         # 接続報酬を判定
+        # if self.your_agent[now_agent] in self.neighbor_search(now_agent):
+        #     head_reward[0] = self.reward_scheme['connect']
+        #
+        #     # アスペクト比報酬を判定
+        #     if self.aspect_search(now_agent) >= 0.8:
+        #         head_reward[1] = self.reward_scheme['shape']
+        #     else:
+        #         pass
+        #
+        #     # 面積報酬を判定
+        #     if self.room_downer <= self.area_search(now_agent) <= self.room_upper:
+        #         head_reward[2] = self.reward_scheme['area']
+        #     else:
+        #         pass
+        # else:
+        #     pass
+
+        # 接続報酬を判定
         if self.your_agent[now_agent] in self.neighbor_search(now_agent):
             head_reward[0] = self.reward_scheme['connect']
 
-            # アスペクト比報酬を判定
-            if self.aspect_search(now_agent) >= 0.8:
-                head_reward[1] = self.reward_scheme['shape']
-            else:
-                pass
+        # アスペクト比報酬を判定
+        if self.aspect_search(now_agent) >= 0.8:
+            head_reward[1] = self.reward_scheme['shape']
 
-            # 面積報酬を判定
-            if self.room_downer <= self.area_search(now_agent) <= self.room_upper:
-                head_reward[2] = self.reward_scheme['area']
-            else:
-                pass
-        else:
-            pass
+        # 面積報酬を判定
+        if self.room_downer <= self.area_search(now_agent) <= self.room_upper:
+            head_reward[2] = self.reward_scheme['area']
 
         return sum(head_reward), head_reward
         # return reward_connect, head_reward

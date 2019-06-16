@@ -15,7 +15,7 @@ class AI:
                  learning_rate=0.00025, annealing=True, annealing_episodes=5000, epsilon=1.0, final_epsilon=0.05, test_epsilon=0.001,
                 minibatch_size=32, replay_max_size=100, replay_memory_size=50000,
                  update_freq=50, learning_frequency=1,
-                 num_units=250, remove_features=False, use_mean=False, use_hra=True, rng=None):
+                 num_units=250, remove_features=False, use_mean=False, use_hra=True, rng=None, test=False):
         self.rng = rng
         self.history_len = history_len
         # self.state_shape = [1] + state_shape # この操作が謎　
@@ -49,6 +49,8 @@ class AI:
         self.replay_max_size = replay_max_size
         self.replay_memory_size = replay_memory_size
 
+        self.test = test
+
         self.transitions = ExperienceReplay(max_size=self.replay_max_size, history_len=history_len, rng=self.rng,
                                             state_shape=state_shape, action_dim=action_dim, reward_dim=reward_dim)
 
@@ -65,7 +67,12 @@ class AI:
 
         # ネットワークのコンパイル lossなどの定義
         self._compile_learning()
-        print('Compiled Model and Learning.')
+        if not self.test:
+            print('Compiled Model. -- Learning -- ')
+
+        else:
+            self.load_weights(weights_file_path='./results/test_weights/q_network_weights.h5')
+            print('Compiled Model and Load weights. -- Testing -- ')
 
 
     def _build_network(self):
@@ -209,6 +216,11 @@ class AI:
     def dump_network(self, weights_file_path='q_network_weights.h5', overwrite=True):
         for i, network in enumerate(self.networks):
             network.save_weights(weights_file_path[:-3] + str(i) + weights_file_path[-3:], overwrite=overwrite)
+
+    def load_weights(self, weights_file_path='q_network_weights.h5'):
+        for i, network in enumerate(self.networks):
+            network.load_weights(weights_file_path[:-3] + str(i) + weights_file_path[-3:])
+        self.update_weights([])
 
     @staticmethod
     def weight_transfer(from_model, to_model):

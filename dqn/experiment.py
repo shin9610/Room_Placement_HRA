@@ -12,7 +12,7 @@ class DQNExperiment(object):
                  folder_name='expt', testing=False):
         self.rng = rng
         self.fps = 0
-        self.episode_num = 0
+        self.episode_num = 1
         self.last_episode_steps = 0
         self.total_training_steps = 0
         self.score = 0
@@ -32,9 +32,10 @@ class DQNExperiment(object):
         self.ai = ai
         self.history_len = history_len
         self.max_start_nullops = max_start_nullops
-        if not testing:
-            self.folder_name, self.folder_name_images, self.folder_name_movies = \
-                create_folder(folder_location, folder_name)
+
+        self.folder_name, self.folder_name_images, self.folder_name_movies = \
+            create_folder(folder_location, folder_name, test=testing)
+
         self.episode_max_len = episode_max_len
         self.num_agents = env.n_agents
         self.score_window = np.zeros(score_window_size)
@@ -44,6 +45,14 @@ class DQNExperiment(object):
 
         self.draw_graph_freq = draw_graph_freq
 
+    def do_testing(self, total_test_eps=1, eps_per_test=1, is_learning=False, is_testing=True):
+        print(Font.cyan + Font.bold + 'Testing ... '  + Font.end, end='\n')
+        test_scores, test_scores_connect, test_scores_shape, test_scores_area, _, _ = \
+            self.do_episodes(number=eps_per_test, is_learning=False)
+        print('Test_Score: ' + str(test_scores) + '\n')
+        print('connect/shape/area: ' + str(test_scores_connect) + '/' + str(test_scores_shape) + '/' + str(test_scores_area))
+        # 動画の作成
+        self.env.movie(self.episode_num, self.folder_name_images, self.folder_name_movies)
 
     def do_training(self, total_eps=5000, eps_per_epoch=10, eps_per_test=100, is_learning=True, is_testing=True):
         # total eps に達するまでepsを行う
@@ -169,7 +178,7 @@ class DQNExperiment(object):
                     # 学習を行う →　learn()　→　train_on_batch()　→　_train_on_batch()
                     _, self.learn_time = self.ai.learn()
 
-                # temp_Dを保存
+                # temp_Dを保存　→ term = Falseで保存
                 if not evaluate:
                     self.ai.transitions.store_temp_exp(np.array((state_t)), action, reward_channels, np.array((state_t_1)), False)
                     self.total_training_steps += 1

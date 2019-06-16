@@ -2,6 +2,7 @@ rendering: False
 nb_experiments: 1
 random_seed: 1234
 total_eps: 5000
+total_test_eps: 1
 is_learning: True
 eps_per_epoch: 10
 max_start_nullops: 0
@@ -10,7 +11,7 @@ eps_per_test: 1
 episode_max_len: 5000
 step_max_len: 1500
 folder_location: '/results/'
-test: False
+test: True
 
 annealing: True
 annealing_episodes: 5000
@@ -33,3 +34,7 @@ num_units: 250
 draw_graph_freq: 10
 draw_cv2_freq: 500
 draw_movie_freq: 500
+
+test_draw_cv2_freq: 1
+test_draw_movie_freq: 1
+

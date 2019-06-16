@@ -63,7 +63,10 @@ def set_params(params, mode, gamma=None, lr=None, folder_name=None):
         params['gamma'] = gamma
         params['learning_rate'] = lr
     if folder_name is None:
-        params['folder_name'] = mode + '__g' + str(params['gamma']) + '__lr' + str(params['learning_rate']) + '__'
+        if not params['test']:
+            params['folder_name'] = mode + '__g' + str(params['gamma']) + '__lr' + str(params['learning_rate']) + '__'
+        else:
+            params['folder_name'] = 'test__'
     else:
         params['folder_name'] = folder_name
     return params
@@ -127,7 +130,7 @@ def compute_ave(score, temp_scores, ave_score, episode, div=20):
 
     return ave_score, temp_scores
 
-def create_folder(folder_location, folder_name):
+def create_folder(folder_location, folder_name, test):
     i = 0
     t = datetime.now().strftime("%m%d_%H%M")
     while os.path.exists(os.getcwd() + folder_location + folder_name + str(i)):
@@ -137,15 +140,25 @@ def create_folder(folder_location, folder_name):
     # folder_name = os.path.join(os.path.abspath('../'), folder_location, folder_name + str(i) + str(t))
     # os.mkdir(folder_name)
 
-    folder_name = os.getcwd() + folder_location + folder_name + str(i)
-    os.mkdir(folder_name)
+    if not test:
+        folder_name = os.getcwd() + folder_location + folder_name + str(i)
+        os.mkdir(folder_name)
 
-    folder_name_images = os.path.join(folder_name, str('images'))
-    os.mkdir(folder_name_images)
-    folder_name_movies = os.path.join(folder_name, str('movies'))
-    os.mkdir(folder_name_movies)
-    return folder_name, folder_name_images, folder_name_movies
-    # return folder_name
+        folder_name_images = os.path.join(folder_name, str('images'))
+        os.mkdir(folder_name_images)
+        folder_name_movies = os.path.join(folder_name, str('movies'))
+        os.mkdir(folder_name_movies)
+        return folder_name, folder_name_images, folder_name_movies
+        # return folder_name
+    else:
+        folder_name = os.getcwd() + folder_location + folder_name + str(i)
+        os.mkdir(folder_name)
+
+        folder_name_images = os.path.join(folder_name, str('test_images'))
+        os.mkdir(folder_name_images)
+        folder_name_movies = os.path.join(folder_name, str('test_movies'))
+        os.mkdir(folder_name_movies)
+        return folder_name, folder_name_images, folder_name_movies
 
 
 class Font:
