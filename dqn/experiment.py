@@ -45,14 +45,15 @@ class DQNExperiment(object):
 
         self.draw_graph_freq = draw_graph_freq
 
-    def do_testing(self, total_test_eps=1, eps_per_test=1, is_learning=False, is_testing=True):
+    def do_testing(self, total_test_eps=5, eps_per_test=1, is_learning=False, is_testing=True):
         print(Font.cyan + Font.bold + 'Testing ... '  + Font.end, end='\n')
-        test_scores, test_scores_connect, test_scores_shape, test_scores_area, _, _ = \
-            self.do_episodes(number=eps_per_test, is_learning=False)
-        print('Test_Score: ' + str(test_scores) + '\n')
-        print('connect/shape/area: ' + str(test_scores_connect) + '/' + str(test_scores_shape) + '/' + str(test_scores_area))
-        # 動画の作成
-        self.env.movie(self.episode_num, self.folder_name_images, self.folder_name_movies)
+        for i in range(total_test_eps):
+            test_scores, test_scores_connect, test_scores_shape, test_scores_area, _, _ = \
+                self.do_episodes(number=eps_per_test, is_learning=False)
+            print('Test_Score: ' + str(test_scores) + '\n')
+            print('connect/shape/area: ' + str(test_scores_connect) + '/' + str(test_scores_shape) + '/' + str(test_scores_area))
+            # 動画の作成
+            self.env.movie(self.episode_num, self.folder_name_images, self.folder_name_movies)
 
     def do_training(self, total_eps=5000, eps_per_epoch=10, eps_per_test=100, is_learning=True, is_testing=True):
         # total eps に達するまでepsを行う
