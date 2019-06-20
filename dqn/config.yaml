@@ -11,7 +11,7 @@ eps_per_test: 1
 episode_max_len: 5000
 step_max_len: 1500
 folder_location: '/results/'
-test: True
+test: False
 
 annealing: True
 annealing_episodes: 5000
