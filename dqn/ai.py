@@ -71,7 +71,9 @@ class AI:
             print('Compiled Model. -- Learning -- ')
 
         else:
-            self.load_weights(weights_file_path='./results/test_weights/q_network_weights.h5')
+            # self.load_weights(weights_file_path='./results/test_weights/q_network_weights.h5')
+            self.load_weights(weights_file_path='./results/test_weights_7chan/q_network_weights.h5')
+
             print('Compiled Model and Load weights. -- Testing -- ')
 
 
