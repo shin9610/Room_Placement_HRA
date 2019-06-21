@@ -53,14 +53,28 @@ class RoomPlacement:
         # self.your_agent = [1, 0, 3, 2, 5, 4, 7, 6]
         # self.your_agent = [1, 0, 0, 0, 0, 0, 0, 0]
 
+        # self.your_agent = [[1, None, None, None],
+        #                    [0, None, None, None],
+        #                    [3, None, None, None],
+        #                    [2, None, None, None],
+        #                    [5, None, None, None],
+        #                    [4, None, None, None],
+        #                    [7, None, None, None],
+        #                    [6, None, None, None]]
+
         self.your_agent = [[1, 2, 3, None],
                            [0, 3, None, None],
                            [3, 5, 6, None],
-                           [2, None, None, None],
+                           [2, 7, 1, None],
                            [5, None, None, None],
                            [4, None, None, None],
                            [7, None, None, None],
-                           [6, 2, 3, 0]]
+                           [6, None, None, None]]
+
+        # self.your_agent = [[1, 2, None, None],
+        #                    [0, 3, None, None],
+        #                    [3, 5, 6, None],
+        #                    [6, 2, 3, 0]]
 
         self.neighbor_list = []
 
@@ -78,16 +92,18 @@ class RoomPlacement:
         self.state_t = copy.deepcopy(self.state_0)
         self.state_t_1 = 0
 
+        # channelの数が4
         # self.state_4chan_0 = self.state_4chan(0, next_flag=False)
         # self.next_state_4chan_0 = self.state_4chan(0, next_flag=True)
 
-        # channelの数に依存しない
+        # channelの数が7
         self.state_channel_0 = self.state_channel(0, next_flag=False)
         self.next_state_channel_0 = self.state_channel(0, next_flag=True)
 
 
         # yourの接続相手が単数 my: 1, your: 1, other: 1, site: 1
         # self.state_shape = [4, 28, 28]
+
         # yourの接続相手が複数　my: 1, your: 4, other: 1, site: 1
         self.state_shape = [7, 28, 28]
 
@@ -236,64 +252,64 @@ class RoomPlacement:
         return init_state
 
     # stateのチャネルリストの初期化
-    def state_4chan(self, now_agent, next_flag):
-        temp_my = np.zeros((self.col, self.row))
-        temp_your = np.zeros((self.col, self.row))
-        temp_other = np.zeros((self.col, self.row))
-        temp_site = np.zeros((self.col, self.row))
-
-        # 次のエージェントの分
-        if next_flag:
-            if now_agent == self.n_agents - 1:
-                my_agent_num = 0
-            else:
-                my_agent_num = now_agent + 1
-            your_agent_num = self.your_agent[my_agent_num]
-
-        # 現エージェントの分
-        else:
-            my_agent_num = now_agent
-            your_agent_num = self.your_agent[now_agent]
-
-        # それぞれのエージェントのインデックスを保持する
-        temp_my_list = []
-        temp_your_list = []
-        temp_other_list = []
-
-        # 敷地のインデックスを保持する
-        temp_site_arr = np.array(np.where(self.state_0 == -2)).T
-        temp_site_list = temp_site_arr.tolist()
-
-        for i in range(self.n_agents):
-            if i == my_agent_num:
-                temp_my_arr = np.array(np.where(self.state_t == i)).T
-                temp_my_list = temp_my_arr.tolist()
-
-            elif i == your_agent_num:
-                temp_your_arr = np.array(np.where(self.state_t == i)).T
-                temp_your_list = temp_your_arr.tolist()
-
-            else:
-                temp_other_arr = np.array(np.where(self.state_t == i)).T
-                temp_other_list.extend(temp_other_arr.tolist())
-
-        # tempのチャンネルに数値を入れる
-        for i, list in enumerate(temp_my_list):
-            temp_my[list[0], list[1]] = 1
-
-        for i, list in enumerate(temp_your_list):
-            temp_your[list[0], list[1]] = 1
-
-        for i, list in enumerate(temp_other_list):
-            temp_other[list[0], list[1]] = 1
-
-        for i, list in enumerate(temp_site_list):
-            temp_site[list[0], list[1]] = 1
-
-        state_4chan = tuple((temp_my, temp_your, temp_other, temp_site))
-        # state_4chan = np.array((temp_my, temp_your, temp_other, temp_site))
-
-        return state_4chan
+    # def state_4chan(self, now_agent, next_flag):
+    #     temp_my = np.zeros((self.col, self.row))
+    #     temp_your = np.zeros((self.col, self.row))
+    #     temp_other = np.zeros((self.col, self.row))
+    #     temp_site = np.zeros((self.col, self.row))
+    #
+    #     # 次のエージェントの分
+    #     if next_flag:
+    #         if now_agent == self.n_agents - 1:
+    #             my_agent_num = 0
+    #         else:
+    #             my_agent_num = now_agent + 1
+    #         your_agent_num = self.your_agent[my_agent_num]
+    #
+    #     # 現エージェントの分
+    #     else:
+    #         my_agent_num = now_agent
+    #         your_agent_num = self.your_agent[now_agent]
+    #
+    #     # それぞれのエージェントのインデックスを保持する
+    #     temp_my_list = []
+    #     temp_your_list = []
+    #     temp_other_list = []
+    #
+    #     # 敷地のインデックスを保持する
+    #     temp_site_arr = np.array(np.where(self.state_0 == -2)).T
+    #     temp_site_list = temp_site_arr.tolist()
+    #
+    #     for i in range(self.n_agents):
+    #         if i == my_agent_num:
+    #             temp_my_arr = np.array(np.where(self.state_t == i)).T
+    #             temp_my_list = temp_my_arr.tolist()
+    #
+    #         elif i == your_agent_num:
+    #             temp_your_arr = np.array(np.where(self.state_t == i)).T
+    #             temp_your_list = temp_your_arr.tolist()
+    #
+    #         else:
+    #             temp_other_arr = np.array(np.where(self.state_t == i)).T
+    #             temp_other_list.extend(temp_other_arr.tolist())
+    #
+    #     # tempのチャンネルに数値を入れる
+    #     for i, list in enumerate(temp_my_list):
+    #         temp_my[list[0], list[1]] = 1
+    #
+    #     for i, list in enumerate(temp_your_list):
+    #         temp_your[list[0], list[1]] = 1
+    #
+    #     for i, list in enumerate(temp_other_list):
+    #         temp_other[list[0], list[1]] = 1
+    #
+    #     for i, list in enumerate(temp_site_list):
+    #         temp_site[list[0], list[1]] = 1
+    #
+    #     state_4chan = tuple((temp_my, temp_your, temp_other, temp_site))
+    #     # state_4chan = np.array((temp_my, temp_your, temp_other, temp_site))
+    #
+    #     return state_4chan
 
     def state_channel(self, now_agent, next_flag):
         temp_my = np.zeros((self.col, self.row))
@@ -415,8 +431,11 @@ class RoomPlacement:
         self.state_t_1 = self.state_t
 
         # 現エージェントと次エージェントのstate_4chanの更新
-        self.state_4chan_t = self.state_4chan(now_agent, next_flag=False)
-        self.next_state_4chan_t = self.state_4chan(now_agent, next_flag=True)
+        # self.state_4chan_t = self.state_4chan(now_agent, next_flag=False)
+        # self.next_state_4chan_t = self.state_4chan(now_agent, next_flag=True)
+
+        self.state_channel_t = self.state_channel(now_agent, next_flag=False)
+        self.next_state_channel_t = self.state_channel(now_agent, next_flag=True)
 
         # 報酬判定 reward: 報酬の合計，channels: 報酬のチャネル
         self.reward, self.reward_channels = self.reward_condition(now_agent)
@@ -699,8 +718,8 @@ class RoomPlacement:
         #     pass
 
         # 接続報酬を判定
-        print(self.your_agent[now_agent])
-        print(self.neighbor_search(now_agent))
+        # print(self.your_agent[now_agent])
+        # print(self.neighbor_search(now_agent))
 
         # if self.your_agent[now_agent] in self.neighbor_search(now_agent):
         #     head_reward[0] = self.reward_scheme['connect']

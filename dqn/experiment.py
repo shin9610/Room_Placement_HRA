@@ -12,7 +12,7 @@ class DQNExperiment(object):
                  folder_name='expt', testing=False):
         self.rng = rng
         self.fps = 0
-        self.episode_num = 1
+        self.episode_num = 0
         self.last_episode_steps = 0
         self.total_training_steps = 0
         self.score = 0
@@ -46,6 +46,7 @@ class DQNExperiment(object):
         self.draw_graph_freq = draw_graph_freq
 
     def do_testing(self, total_test_eps=5, eps_per_test=1, is_learning=False, is_testing=True):
+        self.episode_num += 1
         print(Font.cyan + Font.bold + 'Testing ... '  + Font.end, end='\n')
         for i in range(total_test_eps):
             test_scores, test_scores_connect, test_scores_shape, test_scores_area, _, _ = \
