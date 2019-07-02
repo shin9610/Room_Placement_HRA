@@ -28,7 +28,7 @@ class AI:
         self.learning_rate_start = learning_rate
 
         self.is_aggregator = is_aggregator
-        self.agg_w = []
+        self.agg_w = np.zeros((self.reward_dim, 1, 1))
 
         self.epsilon = epsilon
         self.start_epsilon = epsilon
@@ -175,15 +175,41 @@ class AI:
     def aggregator(self, reward_channels):
 
         if self.is_aggregator:
+            # 接続報酬のインデックス
+            connect_heads = reward_channels[0:4]
+
             # 接続条件を満たしていない場合
-            if reward_channels[0] == 0:
-                self.agg_w = np.array([[[5]], [[1]], [[1]]])
+            if 0.0 in connect_heads:
+                for index, reward in enumerate(reward_channels):
+                    # 接続報酬
+                    if 0<=index<=3:
+                        if reward == 1.0:
+                            self.agg_w[index][0][0] = 1
+                        elif reward == 0.0:
+                            self.agg_w[index][0][0] = 5
+                        elif np.isnan(reward):
+                            self.agg_w[index][0][0] = 0
+                    # 面積，形状報酬
+                    else:
+                        self.agg_w[index][0][0] = 1
 
             # 接続条件を満たしている場合
             else:
-                self.agg_w = np.array([[[1]], [[5]], [[5]]])
+                for index, reward in enumerate(reward_channels):
+                    # 接続報酬
+                    if 0<=index<=3:
+                        if reward == 1.0:
+                            self.agg_w[index][0][0] = 1
+                        elif reward == 0.0:
+                            self.agg_w[index][0][0] = 1
+                        elif np.isnan(reward):
+                            self.agg_w[index][0][0] = 0
+                    # 面積，形状報酬
+                    else:
+                        self.agg_w[index][0][0] = 5
+
         else:
-            self.agg_w = np.array([[[1]], [[1]], [[1]]])
+            raise ValueError("not use aggregator")
 
     def train_on_batch(self, s, a, r, s2, t):
         # 元コード　expand_dimsをしている
@@ -192,6 +218,7 @@ class AI:
         # if len(r.shape) == 1:
         #     r = np.expand_dims(r, axis=-1)
 
+        # minibatch分だけ入力
         return self._train_on_batch([s, a, r, s2, t])
 
     def learn(self):

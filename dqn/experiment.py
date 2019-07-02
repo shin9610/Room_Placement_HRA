@@ -116,9 +116,10 @@ class DQNExperiment(object):
 
             self._do_episode(is_learning=is_learning, evaluate=not is_learning)
             scores.append(self.score)
-            scores_connect.append(self.score_channel[0])
-            scores_shape.append(self.score_channel[1])
-            scores_area.append(self.score_channel[2])
+            # 接続報酬の0~3までの合計(nanを除く)
+            scores_connect.append(sum([i for i in self.score_channel[0:4] if not np.isnan(i)]))
+            scores_shape.append(self.score_channel[4])
+            scores_area.append(self.score_channel[5])
 
             steps.append(self.last_episode_steps)
             learn_times.append(self.learn_time)

@@ -28,7 +28,9 @@ class RoomPlacement:
 
         # 報酬と終了条件の初期化
         self.reward = 0
-        self.reward_scheme = {'connect': +1.0, 'shape': +1.0, 'area': +1.0}
+        # self.reward_scheme = {'connect': +1.0, 'shape': +1.0, 'area': +1.0}
+        self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0,
+                              'shape': +1.0, 'area': +1.0}
         # self.reward_scheme = {'connect': +1.0, 'shape': +1.0}
         # self.reward_scheme = {'connect': +1.0}
         self.reward_len = len(self.reward_scheme)
@@ -42,7 +44,7 @@ class RoomPlacement:
             self.random_flag = False
         else:
             self.random_flag = True
-        self.n_agents = 8
+        self.n_agents = 4
         self.room_col = 3
         self.room_row = 3
         self.room_size = self.room_col * self.room_row
@@ -62,19 +64,19 @@ class RoomPlacement:
         #                    [7, None, None, None],
         #                    [6, None, None, None]]
 
-        self.your_agent = [[1, 2, 3, None],
-                           [0, 3, None, None],
-                           [3, 5, 6, None],
-                           [2, 7, 1, None],
-                           [5, None, None, None],
-                           [4, None, None, None],
-                           [7, None, None, None],
-                           [6, None, None, None]]
-
-        # self.your_agent = [[1, 2, None, None],
+        # self.your_agent = [[1, 2, 3, None],
         #                    [0, 3, None, None],
         #                    [3, 5, 6, None],
-        #                    [6, 2, 3, 0]]
+        #                    [2, 7, 1, None],
+        #                    [5, None, None, None],
+        #                    [4, None, None, None],
+        #                    [7, None, None, None],
+        #                    [6, None, None, None]]
+
+        self.your_agent = [[1, 3, None, None],
+                           [0, 2, None, None],
+                           [1, 3, None, None],
+                           [0, 2, None, None]]
 
         self.neighbor_list = []
 
@@ -725,19 +727,22 @@ class RoomPlacement:
         #     head_reward[0] = self.reward_scheme['connect']
 
         # この与え方だと接続に対して一律に観測する．　→　headを作成した方が適切？
-        for your_agent in self.your_agent[now_agent]:
-            if your_agent in self.neighbor_search(now_agent):
-                head_reward[0] += self.reward_scheme['connect']
+        for n, your_list in enumerate(self.your_agent[now_agent]):
+            if your_list in self.neighbor_search(now_agent):
+                head_reward[n] = self.reward_scheme['connect' + str(n)]
+            elif your_list == None:
+                head_reward[n] = None
 
         # アスペクト比報酬を判定
         if self.aspect_search(now_agent) >= 0.8:
-            head_reward[1] = self.reward_scheme['shape']
+            head_reward[4] = self.reward_scheme['shape']
 
         # 面積報酬を判定
         if self.room_downer <= self.area_search(now_agent) <= self.room_upper:
-            head_reward[2] = self.reward_scheme['area']
+            head_reward[5] = self.reward_scheme['area']
 
-        return sum(head_reward), head_reward
+        # nanを除いた報酬の合計を返す
+        return sum([i for i in head_reward if not np.isnan(i)]), head_reward
         # return reward_connect, head_reward
 
     def number_to_color(self, num):

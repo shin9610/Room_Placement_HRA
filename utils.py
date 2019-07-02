@@ -7,6 +7,8 @@ from numpy import all, uint8
 import pandas as pd
 import matplotlib as mpl
 from keras import backend as K
+import random
+import copy
 
 mpl.use('Agg')
 import matplotlib.pyplot as plt
@@ -260,6 +262,9 @@ class ExperienceReplay(object):
             self.size += 1
 
     def store_temp_exp(self, states, action, reward, states_1, terminal):
+        #stateとhead_rewardを揃えたままシャッフルしてstore
+        states, states_1, reward = self.s_r_shuffle(states, states_1, reward)
+
         self.temp_D.append((states, action, reward, states_1, terminal))
         # print(np.array(states, action, reward, states_1, terminal))
         # self.temp_D.append(np.array(states, action, reward, states_1, terminal))
@@ -356,5 +361,23 @@ class ExperienceReplay(object):
                 self.temp_rot_D.append((state_t_rot, action_rot, self.temp_D[i][2], state_t_1_rot, self.temp_D[i][4]))
 
         self.temp_D.extend(self.temp_rot_D)
+
+    def s_r_shuffle(self, states, states_1, reward):
+        state_t, state_t_1 = np.copy(states[1:5]), np.copy(states_1[1:5])
+        reward_t = np.copy(reward[0:4])
+
+        z = zip(state_t, reward_t, state_t_1)
+        z_list = []
+
+        for obj in z:
+            z_list.append(obj)
+
+        shuffled_list = random.sample(z_list, len(z_list))
+        tupled_states, tupled_reward, tupled_states_1 = zip(*shuffled_list)
+
+        states[1:5], reward[0:4], states_1[1:5] = tupled_states[0:4], tupled_reward[0:4], tupled_states_1[0:4]
+
+        return states, states_1, reward
+
 
 
