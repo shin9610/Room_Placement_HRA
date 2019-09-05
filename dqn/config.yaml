@@ -12,7 +12,7 @@ episode_max_len: 10000
 step_max_len: 1500
 folder_location: '/results/'
 test: False
-transfer: True
+transfer: False
 
 annealing: True
 annealing_episodes: 10000
