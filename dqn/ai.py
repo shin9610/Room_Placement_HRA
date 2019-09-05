@@ -2,8 +2,16 @@ import time
 from copy import deepcopy
 
 import numpy as np
-from keras import backend as K
+import tensorflow as tf
+from keras.backend import tensorflow_backend as K
+# from keras import backend as K
 from keras.optimizers import RMSprop
+
+config = tf.ConfigProto(gpu_options=tf.GPUOptions(allow_growth=True))
+# config = tf.ConfigProto(gpu_options=tf.GPUOptions(per_process_gpu_memory_fraction=0.1))
+session = tf.Session(config=config)
+K.set_session(session)
+
 
 from dqn.model import build_cnn
 from utils import ExperienceReplay, flatten, slice_tensor_tensor
@@ -15,7 +23,7 @@ class AI:
                  learning_rate=0.00025, annealing=True, annealing_episodes=5000, epsilon=1.0, final_epsilon=0.05, test_epsilon=0.001,
                 minibatch_size=32, replay_max_size=100, replay_memory_size=50000,
                  update_freq=50, learning_frequency=1,
-                 num_units=250, remove_features=False, use_mean=False, use_hra=True, rng=None, test=False):
+                 num_units=250, remove_features=False, use_mean=False, use_hra=True, rng=None, test=False, transfer_learn=False):
         self.rng = rng
         self.history_len = history_len
         # self.state_shape = [1] + state_shape # この操作が謎　
@@ -28,7 +36,7 @@ class AI:
         self.learning_rate_start = learning_rate
 
         self.is_aggregator = is_aggregator
-        self.agg_w = np.zeros((self.reward_dim, 1, 1))
+        self.agg_w = np.ones((self.reward_dim, 1, 1))
 
         self.epsilon = epsilon
         self.start_epsilon = epsilon
@@ -37,6 +45,8 @@ class AI:
         self.annealing = annealing
         self.annealing_episodes = annealing_episodes
         self.annealing_episode = (self.start_epsilon - self.final_epsilon) / self.annealing_episodes
+        self.get_action_time_channel = np.zeros(4)
+        self.get_max_a_time_channel = np.zeros(3)
 
         self.minibatch_size = minibatch_size
         self.update_freq = update_freq
@@ -50,6 +60,7 @@ class AI:
         self.replay_memory_size = replay_memory_size
 
         self.test = test
+        self.transfer_learn = transfer_learn
 
         self.transitions = ExperienceReplay(max_size=self.replay_max_size, history_len=history_len, rng=self.rng,
                                             state_shape=state_shape, action_dim=action_dim, reward_dim=reward_dim)
@@ -68,11 +79,15 @@ class AI:
         # ネットワークのコンパイル lossなどの定義
         self._compile_learning()
         if not self.test:
-            print('Compiled Model. -- Learning -- ')
+            if self.transfer_learn:
+                self.load_weights(weights_file_path='./learned_weights/init_weights_7chan/q_network_weights.h5')
+                print('Compiled Model. -- Transfer Learning -- ')
+            else:
+                print('Compiled Model. -- Learning -- ')
 
         else:
             # self.load_weights(weights_file_path='./results/test_weights/q_network_weights.h5')
-            self.load_weights(weights_file_path='./results/test_weights_7chan/q_network_weights.h5')
+            self.load_weights(weights_file_path='./learned_weights/test_weights_7chan/q_network_weights.h5')
 
             print('Compiled Model and Load weights. -- Testing -- ')
 
@@ -104,6 +119,8 @@ class AI:
 
         updates = []
         costs = 0
+        # costs_arr = np.zeros(len(self.networks))
+        costs_list = []
         qs = []
         q2s = []
 
@@ -127,7 +144,11 @@ class AI:
                 # 学習設定
                 updates += optimizer.get_updates(params=self.networks[i].trainable_weights, loss=cost)
                 # self.networks[i].compile(loss=cost, optimizer=optimizer)
+                # costの合計
                 costs += cost
+                # 各costが格納されたリスト
+                costs_list.append(cost)
+                # costs_arr[i] = cost
 
         # target_netのweightを更新　
         target_updates = []
@@ -136,7 +157,8 @@ class AI:
                 target_updates.append(K.update(target_weight, network_weight)) # from, to
 
         # kerasの関数のインスタンスを作成　updates: 更新する命令のリスト．
-        self._train_on_batch = K.function(inputs=[s, a, r, s2, t], outputs=[costs], updates=updates)
+        # self._train_on_batch = K.function(inputs=[s, a, r, s2, t], outputs=[costs], updates=updates)
+        self._train_on_batch = K.function(inputs=[s, a, r, s2, t], outputs=costs_list, updates=updates)
         self.predict_network = K.function(inputs=[s], outputs=qs)
         self.update_weights = K.function(inputs=[], outputs=[], updates=target_updates)
 
@@ -148,65 +170,102 @@ class AI:
 
     def get_max_action(self, states):
         # stateのreshape: 未実装
+        # start = time.time()
         states = np.expand_dims(states, axis=0)
+        # expand_dim_time = round(time.time() - start, 8)
+
+        # start = time.time()
         q = np.array(self.predict_network([states]))
+        # predict_q_time = round(time.time() - start, 8)
+
         # print(q)
         # print(self.agg_w)
         # aggのweightを掛ける
+
+        # start = time.time()
         q = q * self.agg_w
         # print(q)
         q = np.sum(q, axis=0)
+        # agg_w_time = round(time.time() - start, 8)
+
+        # self.get_max_a_time_channel = [expand_dim_time, predict_q_time, agg_w_time]
         return np.argmax(q, axis=1)
 
     def get_action(self, states, evaluate, pre_reward_channels):
+        start = time.time()
         if not evaluate:
             eps = self.epsilon
         else:
             eps = self.test_epsilon
+        epsilon_time = round(time.time() - start, 8)
 
+        start = time.time()
         self.aggregator(pre_reward_channels)
+        aggregator_time = round(time.time() - start, 8)
+
+        start = time.time()
+        self.rng.binomial(1, eps)
+        rng_time = round(time.time() - start, 8)
+
+        start = time.time()
+        # a = self.get_max_action(states=states)[0]
+        max_action_time = round(time.time() - start, 8)
+
+        self.get_action_time_channel = [epsilon_time, aggregator_time, rng_time, max_action_time]
 
         # εグリーディ
         if self.rng.binomial(1, eps):
             return self.rng.randint(self.nb_actions)
         else:
             return self.get_max_action(states=states)[0]
+            # return self.rng.randint(self.nb_actions)
+
 
     def aggregator(self, reward_channels):
 
         if self.is_aggregator:
-            # 接続報酬のインデックス
-            connect_heads = reward_channels[0:4]
+            # # 接続報酬のインデックス
+            # connect_heads = reward_channels[0:4]
+            #
+            # # 接続条件を満たしていない場合
+            # if 0.0 in connect_heads:
+            #     for index, reward in enumerate(reward_channels):
+            #         # 接続報酬
+            #         if 0<=index<=3:
+            #             if reward == 1.0:
+            #                 self.agg_w[index][0][0] = 1
+            #             elif reward == 0.0:
+            #                 self.agg_w[index][0][0] = 5
+            #             elif np.isnan(reward):
+            #                 self.agg_w[index][0][0] = 0
+            #         # 面積，形状報酬，有効寸法
+            #         else:
+            #             self.agg_w[index][0][0] = 1
+            #
+            #
+            # # 接続条件を満たしている場合
+            # else:
+            #     for index, reward in enumerate(reward_channels):
+            #         # 接続報酬
+            #         if 0<=index<=3:
+            #             if reward == 1.0:
+            #                 self.agg_w[index][0][0] = 1
+            #             elif reward == 0.0:
+            #                 self.agg_w[index][0][0] = 1
+            #             elif np.isnan(reward):
+            #                 self.agg_w[index][0][0] = 0
+            #         # 面積，形状報酬，有効寸法
+            #         else:
+            #             self.agg_w[index][0][0] = 5
 
-            # 接続条件を満たしていない場合
-            if 0.0 in connect_heads:
-                for index, reward in enumerate(reward_channels):
-                    # 接続報酬
-                    if 0<=index<=3:
-                        if reward == 1.0:
-                            self.agg_w[index][0][0] = 1
-                        elif reward == 0.0:
-                            self.agg_w[index][0][0] = 5
-                        elif np.isnan(reward):
-                            self.agg_w[index][0][0] = 0
-                    # 面積，形状報酬
-                    else:
-                        self.agg_w[index][0][0] = 1
-
-            # 接続条件を満たしている場合
+            if reward_channels[0] != 2.0:
+                self.agg_w[0][0][0] = 5 # connect
+                self.agg_w[1][0][0] = 1 # shape
+                self.agg_w[2][0][0] = 1 # area
             else:
-                for index, reward in enumerate(reward_channels):
-                    # 接続報酬
-                    if 0<=index<=3:
-                        if reward == 1.0:
-                            self.agg_w[index][0][0] = 1
-                        elif reward == 0.0:
-                            self.agg_w[index][0][0] = 1
-                        elif np.isnan(reward):
-                            self.agg_w[index][0][0] = 0
-                    # 面積，形状報酬
-                    else:
-                        self.agg_w[index][0][0] = 5
+                self.agg_w[0][0][0] = 1
+                self.agg_w[1][0][0] = 5
+                self.agg_w[2][0][0] = 5
 
         else:
             raise ValueError("not use aggregator")
@@ -229,7 +288,9 @@ class AI:
         # 経験のサンプリング
         s, a, r, s2, term = self.transitions.sample(self.minibatch_size)
 
-        objective = self.train_on_batch(s, a, r, s2, term)
+        cost_channel = self.train_on_batch(s, a, r, s2, term)
+        if not isinstance(cost_channel, (list)):
+            cost_channel = np.zeros(len(self.networks))
 
         # ターゲットに対してネットワークの更新
         if self.update_counter == self.update_freq:
@@ -240,7 +301,7 @@ class AI:
 
         learn_time = time.time() - start_time
 
-        return objective, learn_time
+        return cost_channel, learn_time
 
     def dump_network(self, weights_file_path='q_network_weights.h5', overwrite=True):
         for i, network in enumerate(self.networks):

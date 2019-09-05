@@ -94,7 +94,7 @@ def plot(data={}, loc="visualization.pdf", x_label="", y_label="", title="", kin
         #         smoothed_data[key] = data[key]
         #     data = smoothed_data
     df = pd.DataFrame(data=data)
-    ax = df.plot(kind=kind, legend=legend, ylim=clip)
+    ax = df.plot(kind=kind, legend=legend, ylim=clip, linewidth=0.5)
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
     ax.set_title(title)
@@ -262,8 +262,15 @@ class ExperienceReplay(object):
             self.size += 1
 
     def store_temp_exp(self, states, action, reward, states_1, terminal):
-        #stateとhead_rewardを揃えたままシャッフルしてstore
-        states, states_1, reward = self.s_r_shuffle(states, states_1, reward)
+        # #stateとhead_rewardを揃えたままシャッフルしてstore
+        # shuffle_states, shuffle_states_1, shuffle_reward = self.s_r_shuffle(states, states_1, reward)
+        #
+        # # # nanの箇所を0で入力
+        # for num, r in enumerate(shuffle_reward):
+        #     if np.isnan(r):
+        #         shuffle_reward[num] = 0.
+        #
+        # self.temp_D.append((shuffle_states, action, shuffle_reward, shuffle_states_1, terminal))
 
         self.temp_D.append((states, action, reward, states_1, terminal))
         # print(np.array(states, action, reward, states_1, terminal))
@@ -277,7 +284,7 @@ class ExperienceReplay(object):
 
             # temp_DをDに格納する。
             self.D.extend(self.temp_D)
-            print('store, exp_num: ' + str(len(self.D)))
+            # print('store, exp_num: ' + str(len(self.D)))
 
         # temp_Dの消去
         self.temp_D.clear()
