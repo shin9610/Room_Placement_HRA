@@ -9,7 +9,7 @@ max_start_nullops: 0
 is_testing: True
 eps_per_test: 1
 episode_max_len: 10000
-step_max_len: 1500
+step_max_len: 1000
 folder_location: '/results/'
 test: False
 transfer: False

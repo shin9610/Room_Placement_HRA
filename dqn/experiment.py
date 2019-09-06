@@ -221,7 +221,7 @@ class DQNExperiment(object):
         self._reset()
 
         # 環境の観測
-        state_t_1, next_state_t_1, reward_t, reward_channels, game_over = self.env.observe()
+        state_t_1, next_state_t_1, reward_t, reward_channels, game_over, term = self.env.observe()
 
         # eps中において，termに達するまでstepを行う
         while not game_over:
@@ -241,7 +241,7 @@ class DQNExperiment(object):
 
                 # 行動選択　→　last_stateをどこから持ってくるか
                 start = time.time()
-                action = self.ai.get_action(state_t, evaluate, pre_reward_channels)
+                action = self.ai.get_action(state_t, evaluate, pre_reward_channels) # aggregator用に前報酬を観測
                 get_action_time_channels.append(self.ai.get_max_a_time_channel)
                 get_action_time = round(time.time() - start, 8)
 
@@ -253,7 +253,7 @@ class DQNExperiment(object):
                 # 行動後の環境の観測
                 # state_t_1, next_state_t_1, reward_t, reward_channels, game_over = self.env.observe()
                 start = time.time()
-                state_t_1, next_state_t_1, reward_t, reward_channels, game_over = self.env.observe()
+                state_t_1, next_state_t_1, reward_t, reward_channels, game_over, term = self.env.observe()
                 observe_time = round(time.time() - start, 8)
 
                 rewards.append(reward_t)
@@ -278,7 +278,7 @@ class DQNExperiment(object):
                 store_D_time = 0
                 if not evaluate:
                     start = time.time()
-                    self.ai.transitions.store_temp_exp(np.array((state_t)), action, reward_channels, np.array((state_t_1)), False)
+                    self.ai.transitions.store_temp_exp(np.array((state_t)), action, reward_channels, np.array((state_t_1)), term)
                     store_D_time = round(time.time() - start, 8)
                     self.total_training_steps += 1
 

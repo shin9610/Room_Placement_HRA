@@ -59,7 +59,8 @@ class RoomPlacement:
         self.step_id = 0
         self.game_length = step_max_len
         self.limit_flag = False # 行動を選択した際，制約に引っかかったときはTrue
-        self.game_over = False
+        self.game_over = False # 規定ステップを超えてしまうとgame_over
+        self.term = False # 規定ステップ内でクリアするとterm
 
         # 室の初期設定
         if not test:
@@ -608,6 +609,8 @@ class RoomPlacement:
 
         # 報酬判定 reward: 報酬の合計，channels: 報酬のチャネル
         self.reward, self.reward_channels = self.reward_condition(now_agent)
+        # 全体としての報酬を観測
+        self.reward_all_condition(now_agent)
 
         self.step_id += 1
 
@@ -1212,27 +1215,40 @@ class RoomPlacement:
         return sum([i for i in head_reward if not np.isnan(i)]), head_reward
         # return reward_connect, head_reward
 
+    def reward_all_condition(self, now_agent):
+        cnt = 0
+        for i in range(self.n_agents):
+            if not i == now_agent:
+                _, head_reward = self.reward_condition(i)
+                if sum(head_reward) == 4.0: # 報酬条件ベタ打ち…
+                    cnt += 1
+
+        if cnt == self.n_agents-1:
+            self.term = True
+            self.game_over = True
+            print('all agents get reward')
+
     def number_to_color(self, num):
         # 赤系統
         if num == 0:
             bgr = (18, 0, 230)
-        elif num == 1:
+        elif num == 4:
             bgr = (79, 0, 229)
 
         # 黄系統
-        elif num == 2:
+        elif num == 1:
             bgr = (0, 241, 255)
-        elif num == 3:
+        elif num == 5:
             bgr = (0, 208, 223)
 
         # 緑系統
-        elif num == 4:
+        elif num == 2:
             bgr = (68, 153, 0)
-        elif num == 5:
+        elif num == 6:
             bgr = (31, 195, 143)
 
         # 青系統
-        elif num == 6:
+        elif num == 3:
             bgr = (233, 160, 0)
         elif num == 7:
             bgr = (183, 104, 0)
@@ -1422,7 +1438,7 @@ class RoomPlacement:
 
     def observe(self):
         # 現エージェントの次の状態，次エージェントの次の状態を観測して返す
-        return self.state_channel_t, self.next_state_channel_t, self.reward, self.reward_channels, self.game_over
+        return self.state_channel_t, self.next_state_channel_t, self.reward, self.reward_channels, self.game_over, self.term
         # return self.state_4chan_t, self.next_state_4chan_t, self.reward, self.reward_channels, self.game_over
 
     def execute_action(self, action, now_agent):
@@ -1433,6 +1449,7 @@ class RoomPlacement:
         self.reward = 0
         self.reward_channels = np.zeros(len(self.reward_scheme), dtype=np.float32)
         self.game_over = False
+        self.term = False
         self.step_id = 0
 
         # 現エージェントの状態の初期化
