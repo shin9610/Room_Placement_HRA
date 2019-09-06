@@ -264,7 +264,7 @@ class AI:
                 self.agg_w[2][0][0] = 1 # area
             else:
                 self.agg_w[0][0][0] = 1
-                self.agg_w[1][0][0] = 5
+                self.agg_w[1][0][0] = 1
                 self.agg_w[2][0][0] = 5
 
         else:
