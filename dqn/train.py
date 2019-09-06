@@ -19,7 +19,7 @@ def worker(params):
 
     # RoomPlacement class : 室配置の環境と，その更新を定義するクラス
     env = RoomPlacement(params['draw_cv2_freq'], params['draw_movie_freq'], params['test_draw_cv2_freq'],
-                        params['test_draw_movie_freq'], folder_name=params['folder_name'],
+                        params['test_draw_movie_freq'], folder_name=params['folder_name'], step_max_len=params['step_max_len'],
                         folder_location=params['folder_location'], test=params['test'])
     params['reward_dim'] = env.reward_len
 

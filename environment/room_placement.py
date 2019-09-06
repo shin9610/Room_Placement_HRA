@@ -16,7 +16,7 @@ from scipy.ndimage import label
 
 
 class RoomPlacement:
-    def __init__(self, draw_cv2_freq, draw_movie_freq, test_draw_cv2_freq, test_draw_movie_freq,
+    def __init__(self, draw_cv2_freq, draw_movie_freq, test_draw_cv2_freq, test_draw_movie_freq, step_max_len,
                  folder_name, folder_location, test):
         # 時間計測
         self.update_time = 0
@@ -57,13 +57,13 @@ class RoomPlacement:
         self.reward_len = len(self.reward_scheme)
         self.reward_channels = []
         self.step_id = 0
-        self.game_length = 1500
+        self.game_length = step_max_len
         self.limit_flag = False # 行動を選択した際，制約に引っかかったときはTrue
         self.game_over = False
 
         # 室の初期設定
         if not test:
-            self.random_flag = True
+            self.random_flag = False
         else:
             self.random_flag = True
         self.evely_random_flag = False
