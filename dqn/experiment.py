@@ -283,8 +283,8 @@ class DQNExperiment(object):
                     self.total_training_steps += 1
 
                 # フレーム画像の描画
-                self.env.draw_cv2(now_agent, action, self.last_episode_steps, reward_channels,
-                                  self.score, self.episode_num, self.folder_name_images)
+                self.env.draw_cv2(now_agent, action, self.last_episode_steps, reward_channels, self.ai.qs, self.ai.agg_q,
+                                  self.ai.merged_q, self.score, self.episode_num, self.folder_name_images)
 
                 # 時間の計測用チャネル
                 time_channel = [state_deepcopy_time, get_action_time, execute_action_time, observe_time, store_D_time]

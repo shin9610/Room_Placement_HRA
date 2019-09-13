@@ -38,6 +38,11 @@ class AI:
         self.is_aggregator = is_aggregator
         self.agg_w = np.ones((self.reward_dim, 1, 1))
 
+        self.qs = np.zeros((self.reward_dim, 1, self.nb_actions))
+        self.agg_q = np.zeros((self.reward_dim, 1, self.nb_actions))
+        self.merged_q = np.zeros((1, self.nb_actions))
+
+
         self.epsilon = epsilon
         self.start_epsilon = epsilon
         self.test_epsilon = test_epsilon
@@ -175,7 +180,7 @@ class AI:
         # expand_dim_time = round(time.time() - start, 8)
 
         # start = time.time()
-        q = np.array(self.predict_network([states]))
+        self.qs = np.array(self.predict_network([states]))
         # predict_q_time = round(time.time() - start, 8)
 
         # print(q)
@@ -183,13 +188,13 @@ class AI:
         # aggのweightを掛ける
 
         # start = time.time()
-        q = q * self.agg_w
+        self.agg_q = self.qs * self.agg_w
         # print(q)
-        q = np.sum(q, axis=0)
+        self.merged_q = np.sum(self.agg_q, axis=0)
         # agg_w_time = round(time.time() - start, 8)
 
         # self.get_max_a_time_channel = [expand_dim_time, predict_q_time, agg_w_time]
-        return np.argmax(q, axis=1)
+        return np.argmax(self.merged_q, axis=1)
 
     def get_action(self, states, evaluate, pre_reward_channels):
         start = time.time()
