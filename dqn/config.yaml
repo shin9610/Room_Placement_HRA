@@ -4,7 +4,7 @@ random_seed: 1234
 total_eps: 10000
 total_test_eps: 1
 is_learning: True
-eps_per_epoch: 2
+eps_per_epoch: 10
 max_start_nullops: 0
 is_testing: True
 eps_per_test: 1
@@ -33,8 +33,8 @@ action_dim: 1
 num_units: 250
 
 draw_graph_freq: 20
-draw_cv2_freq: 10
-draw_movie_freq: 10
+draw_cv2_freq: 1000
+draw_movie_freq: 1000
 
 test_draw_cv2_freq: 1
 test_draw_movie_freq: 1

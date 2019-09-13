@@ -25,10 +25,10 @@ class RoomPlacement:
         self.neighbor_search_time = 0
 
         # 盤面のサイズ
-        # self.col = 28
-        # self.row = 28
-        self.col = 14
-        self.row = 14
+        self.col = 28
+        self.row = 28
+        # self.col = 14
+        # self.row = 14
         # self.img_col = 600
         # self.img_row = 280
         self.img_contents_x_span = 250
@@ -38,9 +38,11 @@ class RoomPlacement:
         self.img_row = self.img_contents_x_span * self.img_contents_x_num
         self.img_col = self.img_contents_y_span * self.img_contents_y_num
         # self.img_grid_pitch = self.img_row/self.col
-        self.img_grid_pitch = 15
+        # self.img_grid_pitch = 15
+        self.img_grid_pitch = int(self.img_contents_x_span/self.row)
         self.agg_q_temps = []
         self.merged_q_temps = []
+        self.agg_w_temps = []
 
         self.size = self.col * self.row
 
@@ -74,7 +76,7 @@ class RoomPlacement:
 
         # 室の初期設定
         if not test:
-            self.random_flag = True
+            self.random_flag = False
         else:
             self.random_flag = True
         self.evely_random_flag = False
@@ -1268,9 +1270,12 @@ class RoomPlacement:
 
         return bgr
 
-    def draw_cv2(self, now_agent, action, step, reward, qs, agg_q, merged_q, reward_total, episode, folder_name_images):
+    def draw_cv2(self, now_agent, action, step, reward, agg_w, agg_q, merged_q, reward_total, episode, folder_name_images):
         if episode % self.draw_cv2_freq == 0 and episode != 0:
             self.img = np.full((self.img_col, self.img_row, 3), 0, dtype=np.uint8)
+            # # 背景色の変更
+            # self.img.fill(255)
+
             # textの設定
             font = cv2.FONT_HERSHEY_PLAIN
             font_size = 1
@@ -1282,14 +1287,16 @@ class RoomPlacement:
             if step == 1:
                 self.agg_q_temps = [agg_q for i in range(self.n_agents)]
                 self.merged_q_temps = [merged_q for i in range(self.n_agents)]
+                self.agg_w_temps = [agg_w for i in range(self.n_agents)]
             else:
                 self.agg_q_temps[now_agent] = agg_q
                 self.merged_q_temps[now_agent] = merged_q
+                self.agg_w_temps[now_agent] = agg_w
 
             # グリッドの出力
             knot_pts = self.draw_grid(n_contents_x=5, n_contents_y=6, font=font, font_size=font_size, color=color)
 
-            # 室配置の出力
+            # 室配置，Q_headsの出力
             for x in range(self.n_agents+1):
                 for y in range(len(agg_q)+2):
                     if x == self.n_agents:
@@ -1303,30 +1310,26 @@ class RoomPlacement:
                             self.draw_room_placement(start_x=knot_pts[x][y][0], start_y=knot_pts[x][y][1], all=False, now_agent=x,
                                                  font=font, font_size=font_size, color=color)
                         elif y != 0 and y < len(agg_q)+1:
-                            # self.draw_q_bar(start_x=knot_pts[x][y][0]+int(self.img_contents_x_span/2),
-                            #                 start_y=knot_pts[x][y][1], q=agg_q[y-1][0], now_agent=now_agent, a_names=a_names,
-                            #                 font=font, font_size=font_size, color=color)
                             self.draw_q_bar(start_x=knot_pts[x][y][0] + int(self.img_contents_x_span / 2),
                                             start_y=knot_pts[x][y][1], q=self.agg_q_temps[x][y-1][0], now_agent=now_agent,
-                                            a_names=a_names,
+                                            a_names=a_names, head_num=y-1,
                                             font=font, font_size=font_size, color=color)
+                            # もしagg_wなら赤枠を出力
+                            if self.agg_w_temps[x][y-1][0] != 1:
+                                # cv2.rectangle(self.img, (knot_pts[x][y][0], knot_pts[x][y][1]),
+                                #               (knot_pts[x+1][y+1][0], knot_pts[x+1][y+1][1]), (18, 0, 230),
+                                #               thickness=1)
+                                cv2.rectangle(self.img, tuple(knot_pts[x][y]), (tuple(knot_pts[x+1][y+1])), (18, 0, 230),
+                                              thickness=1)
                         elif y == len(agg_q)+1:
                             self.draw_q_bar(start_x=knot_pts[x][y][0]+int(self.img_contents_x_span/2),
-                                            start_y=knot_pts[x][y][1], q=self.merged_q_temps[x][0], now_agent=now_agent, a_names=a_names,
+                                            start_y=knot_pts[x][y][1], q=self.merged_q_temps[x][0], now_agent=now_agent,
+                                            a_names=a_names, head_num=y-1,
                                             font=font, font_size=font_size, color=color)
 
             # reward textの出力
-            start_x = knot_pts[4][1][0]
-            start_y = knot_pts[4][1][1]
-            action_name = a_names[action]
-            cv2.putText(self.img, 'agent: ' + str(now_agent), (start_x, start_y), font, font_size, color)
-            if self.limit_flag:
-                cv2.putText(self.img, 'action: ' + str(action_name), (start_x, start_y + 15), font, font_size, (18, 0, 230))
-            else:
-                cv2.putText(self.img, 'action: ' + str(action_name), (start_x, start_y + 15), font, font_size, color)
-            cv2.putText(self.img, 'step: ' + str(step), (start_x, start_y + 30), font, font_size, color)
-            cv2.putText(self.img, 'reward: ' + str(reward), (start_x, start_y + 45), font, font_size, color)
-            cv2.putText(self.img, 'reward_total: ' + str(reward_total), (start_x, start_y + 60), font, font_size, color)
+            self.draw_texts(knot_pts[4][1][0], knot_pts[4][1][1] + 15, now_agent, a_names, action, step,
+                            reward, reward_total, font, font_size, color)
 
             # fileへの出力
             if len(str(step)) == 4:
@@ -1375,7 +1378,6 @@ class RoomPlacement:
 
         # siteの出力
         for i, list in enumerate(site_list):
-
             cv2.rectangle(self.img,
                           (int(list[:][1] + self.img_grid_pitch),
                            int(list[:][0])),
@@ -1383,7 +1385,6 @@ class RoomPlacement:
                            int(list[:][0] + self.img_grid_pitch)),
                           (77, 77, 77),
                           thickness=-1)
-
             cv2.rectangle(self.img,
                           (int(list[:][1] + self.img_grid_pitch),
                            int(list[:][0])),
@@ -1409,63 +1410,60 @@ class RoomPlacement:
         # agentの出力
         for i, list in enumerate(agent_indexes):
             if len(list) == 1:  # agentが1マス
-                cv2.rectangle(self.img,
-                              (int(list[0][1] + self.img_grid_pitch),
-                               int(list[0][0])),
-                              (int(list[0][1]),
-                               int(list[0][0] + self.img_grid_pitch)),
-                              self.number_to_color(i),
-                              thickness=-1)
-                cv2.rectangle(self.img,
-                              (int(list[0][1] + self.img_grid_pitch),
-                               int(list[0][0])),
-                              (int(list[0][1]),
-                               int(list[0][0] + self.img_grid_pitch)),
-                              (200, 200, 200))
+                if all:  # 全エージェントの色を塗る
+                    cv2.rectangle(self.img,
+                                  (int(list[0][1] + self.img_grid_pitch), int(list[0][0])),
+                                  (int(list[0][1]), int(list[0][0] + self.img_grid_pitch)),
+                                  self.number_to_color(i), thickness=-1)
 
+                else:
+                    if i == now_agent:
+                        cv2.rectangle(self.img,
+                                      (int(list[0][1] + self.img_grid_pitch), int(list[0][0])),
+                                      (int(list[0][1]), int(list[0][0] + self.img_grid_pitch)),
+                                      self.number_to_color(i), thickness=-1)
+                    else:
+                        cv2.rectangle(self.img,
+                                      (int(list[0][1] + self.img_grid_pitch), int(list[0][0])),
+                                      (int(list[0][1]), int(list[0][0] + self.img_grid_pitch)),
+                                      (100, 100, 100), thickness=-1)
+
+                cv2.rectangle(self.img,
+                              (int(list[0][1] + self.img_grid_pitch), int(list[0][0])),
+                              (int(list[0][1]), int(list[0][0] + self.img_grid_pitch)),
+                              (200, 200, 200))
             else:  # agentが複数マス
                 for j, j_list in enumerate(list):
                     if all:  # 全エージェントの色を塗る
                         cv2.rectangle(self.img,
-                                      (int(j_list[:][1]),
-                                       int(j_list[:][0])),
-                                      (int(j_list[:][1] + self.img_grid_pitch),
-                                       int(j_list[:][0] + self.img_grid_pitch)),
-                                      self.number_to_color(i),
-                                      thickness=-1)
+                                      (int(j_list[:][1] + self.img_grid_pitch), int(j_list[:][0])),
+                                      (int(j_list[:][1]), int(j_list[:][0] + self.img_grid_pitch)),
+                                      self.number_to_color(i), thickness=-1)
                     else:
                         if i == now_agent:
                             cv2.rectangle(self.img,
-                                          (int(j_list[:][1] + self.img_grid_pitch),
-                                           int(j_list[:][0])),
-                                          (int(j_list[:][1]),
-                                           int(j_list[:][0] + self.img_grid_pitch)),
-                                          self.number_to_color(i),
-                                          thickness=-1)
+                                          (int(j_list[:][1] + self.img_grid_pitch), int(j_list[:][0])),
+                                          (int(j_list[:][1]), int(j_list[:][0] + self.img_grid_pitch)),
+                                          self.number_to_color(i), thickness=-1)
                         else:
                             cv2.rectangle(self.img,
-                                          (int(j_list[:][1] + self.img_grid_pitch),
-                                           int(j_list[:][0])),
-                                          (int(j_list[:][1]),
-                                           int(j_list[:][0] + self.img_grid_pitch)),
-                                          (100, 100, 100),
-                                          thickness=-1)
+                                          (int(j_list[:][1] + self.img_grid_pitch), int(j_list[:][0])),
+                                          (int(j_list[:][1]), int(j_list[:][0] + self.img_grid_pitch)),
+                                          (100, 100, 100), thickness=-1)
 
                     cv2.rectangle(self.img,
-                                  (int(j_list[:][1] + self.img_grid_pitch),
-                                   int(j_list[:][0])),
-                                  (int(j_list[:][1]),
-                                   int(j_list[:][0] + self.img_grid_pitch)),
+                                  (int(j_list[:][1] + self.img_grid_pitch), int(j_list[:][0])),
+                                  (int(j_list[:][1]), int(j_list[:][0] + self.img_grid_pitch)),
                                   (200, 200, 200))
 
         # textの出力　室配置の中心下に
         if all:
             cv2.putText(self.img, 'all_agents',
-                        (start_x, start_y + (self.col+1) * self.img_grid_pitch),
+                        (start_x, start_y + (self.col+2) * self.img_grid_pitch),
                         font, font_size, color)
         else:
             cv2.putText(self.img, 'agent: ' + str(now_agent),
-                        (start_x, start_y + (self.col+1) * self.img_grid_pitch),
+                        (start_x, start_y + (self.col+2) * self.img_grid_pitch),
                         font, font_size, color)
 
         # 室エージェントの中心indexである座標値を取得
@@ -1499,11 +1497,13 @@ class RoomPlacement:
                              (int(your_center[1]), int(your_center[0])),
                              (255, 255, 255))
 
-    def draw_q_bar(self, start_x, start_y, q, now_agent, a_names, font, font_size, color):
+    def draw_q_bar(self, start_x, start_y, q, now_agent, a_names, head_num, font, font_size, color):
         bar_span = 10  # バー同士の間隔
         bar_col_w = 5  # 縦バーの幅
         bar_row_w = 5  # 横バーの幅
-        bar_row_h = 150  # 横バーの長さを決める係数
+        bar_row_h = 100/max(q)  # 横バーの長さを決める係数 qのmaxから決める．
+        max_a_num = np.argmax(np.array(q)) # Qの最大値インデックス
+
         bar_col_h = len(self.enable_actions) * bar_span  # 縦バーの長さ
         # action_name = action_names[action]
 
@@ -1514,12 +1514,40 @@ class RoomPlacement:
                       (200, 200, 200), thickness=-1)
         # qの横バー
         for i in range(len(self.enable_actions)):
-            cv2.rectangle(self.img,
-                          (start_x+bar_row_w, start_y+(i*bar_span)),
-                          (int(start_x + (q[i]*bar_row_h)), int(start_y+(i*bar_span)+bar_row_w)),
-                          (200, 200, 200), thickness=-1)
+            if i == max_a_num:
+                cv2.rectangle(self.img,
+                              (start_x + bar_row_w, start_y + (i * bar_span)),
+                              (int(start_x + (q[i] * bar_row_h)), int(start_y + (i * bar_span) + bar_row_w)),
+                              (18, 0, 230), thickness=-1)
+            else:
+                cv2.rectangle(self.img,
+                              (start_x+bar_row_w, start_y+(i*bar_span)),
+                              (int(start_x + (q[i]*bar_row_h)), int(start_y+(i*bar_span)+bar_row_w)),
+                              (200, 200, 200), thickness=-1)
             cv2.putText(self.img, a_names[i], (int(start_x-100), (int(start_y+(i*bar_span)+bar_row_w))),
                         font, font_size, color)
+        # ヘッドの名前
+        if head_num==len(self.reward_name):
+            cv2.putText(self.img, 'head_name: merged',
+                        (start_x - 50, start_y + self.img_contents_y_span - 10),
+                        font, font_size, color)
+
+        else:
+            cv2.putText(self.img, 'head_name: ' + str(self.reward_name[head_num]),
+                        (start_x - 50, start_y + self.img_contents_y_span - 10),
+                        font, font_size, color)
+
+
+    def draw_texts(self, start_x, start_y, now_agent, a_names, action, step, reward, reward_total, font, font_size, color):
+        action_name = a_names[action]
+        cv2.putText(self.img, 'agent: ' + str(now_agent), (start_x, start_y), font, font_size, color)
+        if self.limit_flag:
+            cv2.putText(self.img, 'action: ' + str(action_name), (start_x, start_y + 15), font, font_size, (18, 0, 230))
+        else:
+            cv2.putText(self.img, 'action: ' + str(action_name), (start_x, start_y + 15), font, font_size, color)
+        cv2.putText(self.img, 'step: ' + str(step), (start_x, start_y + 30), font, font_size, color)
+        cv2.putText(self.img, 'reward: ' + str(reward), (start_x, start_y + 45), font, font_size, color)
+        cv2.putText(self.img, 'reward_total: ' + str(reward_total), (start_x, start_y + 60), font, font_size, color)
 
     # def gif_animation(self, episode):
     #     if episode % self.draw_movie_freq == 0 and episode != 0:

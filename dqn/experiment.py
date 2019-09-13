@@ -283,7 +283,7 @@ class DQNExperiment(object):
                     self.total_training_steps += 1
 
                 # フレーム画像の描画
-                self.env.draw_cv2(now_agent, action, self.last_episode_steps, reward_channels, self.ai.qs, self.ai.agg_q,
+                self.env.draw_cv2(now_agent, action, self.last_episode_steps, reward_channels, self.ai.agg_w, self.ai.agg_q,
                                   self.ai.merged_q, self.score, self.episode_num, self.folder_name_images)
 
                 # 時間の計測用チャネル
