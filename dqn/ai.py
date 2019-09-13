@@ -41,7 +41,9 @@ class AI:
         self.qs = np.zeros((self.reward_dim, 1, self.nb_actions))
         self.agg_q = np.zeros((self.reward_dim, 1, self.nb_actions))
         self.merged_q = np.zeros((1, self.nb_actions))
-
+        self.qs_list = []
+        self.agg_q_list = []
+        self.merged_q_list = []
 
         self.epsilon = epsilon
         self.start_epsilon = epsilon
