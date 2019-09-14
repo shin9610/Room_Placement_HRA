@@ -1299,37 +1299,39 @@ class RoomPlacement:
             # 室配置，Q_headsの出力
             for x in range(self.n_agents+1):
                 for y in range(len(agg_q)+2):
-                    if x == self.n_agents:
-                        # 全部のエージェントに色付けて出力
-                        if y == 0:
-                            self.draw_room_placement(start_x=knot_pts[x][y][0], start_y=knot_pts[x][y][1], all=True, now_agent=x,
-                                                     font=font, font_size=font_size, color=color)
-                    elif x != self.n_agents:
+                    if x < self.n_agents:
                         # myのみに色を付けて出力
                         if y == 0:
-                            self.draw_room_placement(start_x=knot_pts[x][y][0], start_y=knot_pts[x][y][1], all=False, now_agent=x,
-                                                 font=font, font_size=font_size, color=color)
-                        elif y != 0 and y < len(agg_q)+1:
-                            self.draw_q_bar(start_x=knot_pts[x][y][0] + int(self.img_contents_x_span / 2),
-                                            start_y=knot_pts[x][y][1], q=self.agg_q_temps[x][y-1][0], now_agent=now_agent,
-                                            a_names=a_names, head_num=y-1,
+                            self.draw_room_placement(start_x=knot_pts[x][y][0], start_y=knot_pts[x][y][1], all=False,
+                                                     now_agent=x,
+                                                     font=font, font_size=font_size, color=color)
+                        elif y == 1:
+                            self.draw_q_bar(start_x=knot_pts[x][y][0] + int(self.img_contents_x_span/2),
+                                            start_y=knot_pts[x][y][1], q=self.merged_q_temps[x][0], now_agent=now_agent,
+                                            a_names=a_names, head_num=y - 2,
+                                            font=font, font_size=font_size, color=color)
+                        elif 1 < y:
+                            self.draw_q_bar(start_x=knot_pts[x][y][0] + int(self.img_contents_x_span/2),
+                                            start_y=knot_pts[x][y][1], q=self.agg_q_temps[x][y - 2][0],
+                                            now_agent=now_agent,
+                                            a_names=a_names, head_num=y - 2,
                                             font=font, font_size=font_size, color=color)
                             # もしagg_wなら赤枠を出力
-                            if self.agg_w_temps[x][y-1][0] != 1:
+                            if self.agg_w_temps[x][y - 2][0] != 1:
                                 # cv2.rectangle(self.img, (knot_pts[x][y][0], knot_pts[x][y][1]),
                                 #               (knot_pts[x+1][y+1][0], knot_pts[x+1][y+1][1]), (18, 0, 230),
                                 #               thickness=1)
-                                cv2.rectangle(self.img, tuple(knot_pts[x][y]), (tuple(knot_pts[x+1][y+1])), (18, 0, 230),
+                                cv2.rectangle(self.img, tuple(knot_pts[x][y]), (tuple(knot_pts[x + 1][y + 1])),
+                                              (18, 0, 230),
                                               thickness=1)
-                        elif y == len(agg_q)+1:
-                            self.draw_q_bar(start_x=knot_pts[x][y][0]+int(self.img_contents_x_span/2),
-                                            start_y=knot_pts[x][y][1], q=self.merged_q_temps[x][0], now_agent=now_agent,
-                                            a_names=a_names, head_num=y-1,
-                                            font=font, font_size=font_size, color=color)
-
-            # reward textの出力
-            self.draw_texts(knot_pts[4][1][0], knot_pts[4][1][1] + 15, now_agent, a_names, action, step,
-                            reward, reward_total, font, font_size, color)
+                    elif x == self.n_agents:
+                        if y == 0:
+                            # 全部のエージェントに色付けて出力
+                            self.draw_room_placement(start_x=knot_pts[x][y][0], start_y=knot_pts[x][y][1], all=True, now_agent=x,
+                                                     font=font, font_size=font_size, color=color)
+                            # reward textの出力
+                            self.draw_texts(knot_pts[x][y+1][0], knot_pts[x][y+1][1] + 15, now_agent, a_names, action, step,
+                                            reward, reward_total, font, font_size, color)
 
             # fileへの出力
             if len(str(step)) == 4:
@@ -1498,9 +1500,9 @@ class RoomPlacement:
                              (255, 255, 255))
 
     def draw_q_bar(self, start_x, start_y, q, now_agent, a_names, head_num, font, font_size, color):
-        bar_span = 10  # バー同士の間隔
+        bar_span = 12  # バー同士の間隔
         bar_col_w = 5  # 縦バーの幅
-        bar_row_w = 5  # 横バーの幅
+        bar_row_w = 8  # 横バーの幅
         bar_row_h = 100/max(q)  # 横バーの長さを決める係数 qのmaxから決める．
         max_a_num = np.argmax(np.array(q)) # Qの最大値インデックス
 
@@ -1508,26 +1510,29 @@ class RoomPlacement:
         # action_name = action_names[action]
 
         # qの縦バー
-        cv2.rectangle(self.img,
-                      (start_x, start_y),
-                      (start_x + bar_col_w, start_y + bar_col_h),
-                      (200, 200, 200), thickness=-1)
+        # cv2.rectangle(self.img,
+        #               (start_x, start_y),
+        #               (start_x + bar_col_w, start_y + bar_col_h),
+        #               (200, 200, 200), thickness=-1)
         # qの横バー
         for i in range(len(self.enable_actions)):
             if i == max_a_num:
                 cv2.rectangle(self.img,
-                              (start_x + bar_row_w, start_y + (i * bar_span)),
+                              (start_x+bar_col_w-20, start_y + (i * bar_span)),
                               (int(start_x + (q[i] * bar_row_h)), int(start_y + (i * bar_span) + bar_row_w)),
                               (18, 0, 230), thickness=-1)
             else:
                 cv2.rectangle(self.img,
-                              (start_x+bar_row_w, start_y+(i*bar_span)),
+                              (start_x+bar_col_w-20, start_y+(i*bar_span)),
                               (int(start_x + (q[i]*bar_row_h)), int(start_y+(i*bar_span)+bar_row_w)),
                               (200, 200, 200), thickness=-1)
             cv2.putText(self.img, a_names[i], (int(start_x-100), (int(start_y+(i*bar_span)+bar_row_w))),
                         font, font_size, color)
+            cv2.putText(self.img, str(round(q[i], 2)),
+                        (start_x+bar_col_w-17, (int(start_y+(i*bar_span)+bar_row_w))),
+                        font, font_size, (0, 0, 0))
         # ヘッドの名前
-        if head_num==len(self.reward_name):
+        if head_num==-1:
             cv2.putText(self.img, 'head_name: merged',
                         (start_x - 50, start_y + self.img_contents_y_span - 10),
                         font, font_size, color)
