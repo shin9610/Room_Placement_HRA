@@ -1133,7 +1133,10 @@ class RoomPlacement:
             # 接続に複数ヘッドあり
             elif 'connect' not in self.reward_name:
                 if your_list in neighbors:
-                    head_reward[self.reward_name.index('connect' + str(n))] = self.reward_scheme['connect' + str(n)]
+                    if not self.limit_flag:
+                        head_reward[self.reward_name.index('connect' + str(n))] = self.reward_scheme['connect' + str(n)]
+                    else:
+                        head_reward[self.reward_name.index('connect' + str(n))] = -0.1
                 elif your_list == None:
                     head_reward[self.reward_name.index('connect' + str(n))] = None
 
@@ -1145,6 +1148,8 @@ class RoomPlacement:
         # 面積報酬を判定
         if self.room_downer <= self.area_search(now_agent) <= self.room_upper:
             head_reward[self.reward_name.index('area')] = self.reward_scheme['area']
+
+        # スタックを判定
 
         # # 有効寸法を判定
         # if self.effective_len_search(now_agent):
