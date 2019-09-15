@@ -1145,7 +1145,9 @@ class RoomPlacement:
                     if not self.limit_flag:
                         head_reward[self.reward_name.index('connect' + str(n))] = self.reward_scheme['connect' + str(n)]
                     else:
-                        head_reward[self.reward_name.index('connect' + str(n))] = -0.1
+                        # head_reward[self.reward_name.index('connect' + str(n))] = -0.1
+                        head_reward[self.reward_name.index('connect' + str(n))] = self.reward_scheme['connect' + str(n)]
+
                 elif your_list == None:
                     head_reward[self.reward_name.index('connect' + str(n))] = None
 
