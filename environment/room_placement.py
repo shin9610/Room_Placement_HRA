@@ -1264,7 +1264,8 @@ class RoomPlacement:
                                 # cv2.rectangle(self.img, (knot_pts[x][y][0], knot_pts[x][y][1]),
                                 #               (knot_pts[x+1][y+1][0], knot_pts[x+1][y+1][1]), (18, 0, 230),
                                 #               thickness=1)
-                                cv2.rectangle(self.img, tuple(knot_pts[x][y]), (tuple(knot_pts[x + 1][y + 1])),
+                                cv2.rectangle(self.img, tuple(knot_pts[x][y]),
+                                              (knot_pts[x][y][0]+self.img_contents_x_span, knot_pts[x][y][1]+self.img_contents_y_span),
                                               (18, 0, 230),
                                               thickness=1)
                     elif x == self.n_agents:
