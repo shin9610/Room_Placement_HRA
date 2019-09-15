@@ -31,20 +31,7 @@ class RoomPlacement:
         # self.row = 14
         # self.img_col = 600
         # self.img_row = 280
-        self.img_contents_x_span = 250
-        self.img_contents_y_span = 250
-        self.img_contents_x_num = 5
-        self.img_contents_y_num = 6
-        self.img_row = self.img_contents_x_span * self.img_contents_x_num
-        self.img_col = self.img_contents_y_span * self.img_contents_y_num
-        # self.img_grid_pitch = self.img_row/self.col
-        # self.img_grid_pitch = 15
-        self.img_grid_pitch = int(self.img_contents_x_span/self.row)
-        self.agg_q_temps = []
-        self.merged_q_temps = []
-        self.agg_w_temps = []
 
-        self.size = self.col * self.row
 
         # 0, 1, 2, 3: 移動，4, 5, 6, 7: 拡大， 8, 9, 10, 11: 縮小，12: 停止
         # 0, 1, 2, 3: 移動，4, 5, 6, 7, 8, 9, 10, 11: 変形，12: 停止
@@ -79,11 +66,13 @@ class RoomPlacement:
             self.random_flag = False
         else:
             self.random_flag = True
+
         self.evely_random_flag = False
         self.n_agents = 4
         self.room_col = 3
         self.room_row = 3
         self.room_size = self.room_col * self.room_row
+
 
         # 室の報酬条件
         # self.your_agent = [1, 0, 3, 2]
@@ -159,6 +148,7 @@ class RoomPlacement:
         # self.next_state_4chan_0 = self.state_4chan(0, next_flag=True)
 
         # channelの数が7
+        self.state_shape = [7, self.col, self.row]
         self.state_channel_0 = self.state_channel(0, next_flag=False)
         self.next_state_channel_0 = self.state_channel(0, next_flag=True)
 
@@ -169,8 +159,6 @@ class RoomPlacement:
         # yourの接続相手が複数　my: 1, your: 4, other: 1, site: 1
         # self.state_shape = [7, 28, 28]
         # self.state_shape = [7, self.col, self.row]
-        self.state_shape = [4, self.col, self.row]
-
 
 
         # self.state_4chan_t = copy.deepcopy(self.state_4chan_0)
@@ -182,6 +170,17 @@ class RoomPlacement:
         else:
             self.draw_cv2_freq = test_draw_cv2_freq
             self.draw_movie_freq = test_draw_movie_freq
+
+        self.img_contents_x_span = 250
+        self.img_contents_y_span = 250
+        self.img_contents_x_num = self.n_agents + 1
+        self.img_contents_y_num = len(self.reward_scheme) + 2
+        self.img_row = self.img_contents_x_span * self.img_contents_x_num
+        self.img_col = self.img_contents_y_span * self.img_contents_y_num
+        self.img_grid_pitch = int(self.img_contents_x_span / self.row)
+        self.agg_q_temps = []
+        self.merged_q_temps = []
+        self.agg_w_temps = []
 
 
     # 盤面の初期化
@@ -397,10 +396,13 @@ class RoomPlacement:
 
         return init_state
 
-    # stateのチャネルリストの初期化
     def state_channel(self, now_agent, next_flag):
+
         temp_my = np.zeros((self.col, self.row))
-        temp_your = np.zeros((self.col, self.row))
+        temp_your0 = np.zeros((self.col, self.row))
+        temp_your1 = np.zeros((self.col, self.row))
+        temp_your2 = np.zeros((self.col, self.row))
+        temp_your3 = np.zeros((self.col, self.row))
         temp_other = np.zeros((self.col, self.row))
         temp_site = np.zeros((self.col, self.row))
 
@@ -410,152 +412,97 @@ class RoomPlacement:
                 my_agent_num = 0
             else:
                 my_agent_num = now_agent + 1
-            your_agent_num = self.your_agent[my_agent_num]
+            your_agents = self.your_agent[my_agent_num]
 
         # 現エージェントの分
         else:
             my_agent_num = now_agent
-            your_agent_num = self.your_agent[now_agent]
+            your_agents = self.your_agent[now_agent]
 
         # それぞれのエージェントのインデックスを保持する
         temp_my_list = []
-        temp_your_list = []
+        temp_your0_list = []
+        temp_your1_list = []
+        temp_your2_list = []
+        temp_your3_list = []
         temp_other_list = []
 
         # 敷地のインデックスを保持する
-        temp_site_arr = np.array(np.where(self.state_0 == -2)).T
+        temp_site_arr = np.array(np.where(self.site_0 == -2)).T
         temp_site_list = temp_site_arr.tolist()
 
-        for i in range(self.n_agents):
-            if i == my_agent_num:
-                temp_my_arr = np.array(np.where(self.state_t == i)).T
-                temp_my_list = temp_my_arr.tolist()
+        if self.state_shape[0]==4:
+            for i in range(self.n_agents):
+                if i == my_agent_num:
+                    temp_my_arr = np.array(np.where(self.state_t == i)).T
+                    temp_my_list = temp_my_arr.tolist()
+                elif i in your_agents:
+                    temp_your0_arr = np.array(np.where(self.state_t == i)).T
+                    temp_your0_list.extend(temp_your0_arr.tolist())
+                else:
+                    temp_other_arr = np.array(np.where(self.state_t == i)).T
+                    temp_other_list.extend(temp_other_arr.tolist())
 
-            elif i in your_agent_num:
-                temp_your_arr = np.array(np.where(self.state_t == i)).T
-                temp_your_list.extend(temp_your_arr.tolist())
-
-            else:
-                temp_other_arr = np.array(np.where(self.state_t == i)).T
-                temp_other_list.extend(temp_other_arr.tolist())
+        elif self.state_shape[0]==7:
+            for i in range(self.n_agents):
+                if i == my_agent_num:
+                    temp_my_arr = np.array(np.where(self.state_t == i)).T
+                    temp_my_list = temp_my_arr.tolist()
+                elif i == your_agents[0]:
+                    temp_your0_arr = np.array(np.where(self.state_t == i)).T
+                    temp_your0_list = temp_your0_arr.tolist()
+                elif i == your_agents[1]:
+                    temp_your1_arr = np.array(np.where(self.state_t == i)).T
+                    temp_your1_list = temp_your1_arr.tolist()
+                elif i == your_agents[2]:
+                    temp_your2_arr = np.array(np.where(self.state_t == i)).T
+                    temp_your2_list = temp_your2_arr.tolist()
+                elif i == your_agents[3]:
+                    temp_your3_arr = np.array(np.where(self.state_t == i)).T
+                    temp_your3_list = temp_your3_arr.tolist()
+                else:
+                    temp_other_arr = np.array(np.where(self.state_t == i)).T
+                    temp_other_list.extend(temp_other_arr.tolist())
 
         # tempのチャンネルに数値を入れる
-        for i, list in enumerate(temp_my_list):
-            temp_my[list[0], list[1]] = 1
+        if self.state_shape[0] == 4:
+            for i, list in enumerate(temp_my_list):
+                temp_my[list[0], list[1]] = 1
+            for i, list in enumerate(temp_your0_list):
+                temp_your0[list[0], list[1]] = 1
+            for i, list in enumerate(temp_other_list):
+                temp_other[list[0], list[1]] = 1
+            for i, list in enumerate(temp_site_list):
+                temp_site[list[0], list[1]] = 1
 
-        for i, list in enumerate(temp_your_list):
-            temp_your[list[0], list[1]] = 1
+            state_channel = tuple((temp_my, temp_your0, temp_other, temp_site))
+            return state_channel
 
-        for i, list in enumerate(temp_other_list):
-            temp_other[list[0], list[1]] = 1
+        elif self.state_shape[0] == 7:
+            for i, list in enumerate(temp_my_list):
+                temp_my[list[0], list[1]] = 1
 
-        for i, list in enumerate(temp_site_list):
-            temp_site[list[0], list[1]] = 1
+            if your_agents[0] != None:
+                for i, list in enumerate(temp_your0_list):
+                    temp_your0[list[0], list[1]] = 1
+            if your_agents[1] != None:
+                for i, list in enumerate(temp_your1_list):
+                    temp_your1[list[0], list[1]] = 1
+            if your_agents[2] != None:
+                for i, list in enumerate(temp_your2_list):
+                    temp_your2[list[0], list[1]] = 1
+            if your_agents[3] != None:
+                for i, list in enumerate(temp_your3_list):
+                    temp_your3[list[0], list[1]] = 1
 
-        state_4chan = tuple((temp_my, temp_your, temp_other, temp_site))
-        # state_4chan = np.array((temp_my, temp_your, temp_other, temp_site))
+            for i, list in enumerate(temp_other_list):
+                temp_other[list[0], list[1]] = 1
 
-        return state_4chan
+            for i, list in enumerate(temp_site_list):
+                temp_site[list[0], list[1]] = 1
 
-    # def state_channel(self, now_agent, next_flag):
-    #
-    #     temp_my = np.zeros((self.col, self.row))
-    #     temp_your0 = np.zeros((self.col, self.row))
-    #     temp_your1 = np.zeros((self.col, self.row))
-    #     temp_your2 = np.zeros((self.col, self.row))
-    #     temp_your3 = np.zeros((self.col, self.row))
-    #     temp_other = np.zeros((self.col, self.row))
-    #     temp_site = np.zeros((self.col, self.row))
-    #
-    #     # 次のエージェントの分
-    #     if next_flag:
-    #         if now_agent == self.n_agents - 1:
-    #             my_agent_num = 0
-    #         else:
-    #             my_agent_num = now_agent + 1
-    #         your_agents = self.your_agent[my_agent_num]
-    #
-    #     # 現エージェントの分
-    #     else:
-    #         my_agent_num = now_agent
-    #         your_agents = self.your_agent[now_agent]
-    #
-    #     # それぞれのエージェントのインデックスを保持する
-    #     temp_my_list = []
-    #     temp_your0_list = []
-    #     temp_your1_list = []
-    #     temp_your2_list = []
-    #     temp_your3_list = []
-    #
-    #     temp_other_list = []
-    #
-    #
-    #     # 敷地のインデックスを保持する
-    #     temp_site_arr = np.array(np.where(self.site_0 == -2)).T
-    #
-    #     start = time.time()
-    #
-    #     temp_site_list = temp_site_arr.tolist()
-    #     self.state_channel_time += round(time.time() - start, 8)
-    #
-    #
-    #     # ここめっちゃ重い
-    #     for i in range(self.n_agents):
-    #         if i == my_agent_num:
-    #             temp_my_arr = np.array(np.where(self.state_t == i)).T
-    #             temp_my_list = temp_my_arr.tolist()
-    #
-    #         elif i == your_agents[0]:
-    #             temp_your0_arr = np.array(np.where(self.state_t == i)).T
-    #             temp_your0_list = temp_your0_arr.tolist()
-    #
-    #         elif i == your_agents[1]:
-    #             temp_your1_arr = np.array(np.where(self.state_t == i)).T
-    #             temp_your1_list = temp_your1_arr.tolist()
-    #
-    #         elif i == your_agents[2]:
-    #             temp_your2_arr = np.array(np.where(self.state_t == i)).T
-    #             temp_your2_list = temp_your2_arr.tolist()
-    #
-    #         elif i == your_agents[3]:
-    #             temp_your3_arr = np.array(np.where(self.state_t == i)).T
-    #             temp_your3_list = temp_your3_arr.tolist()
-    #
-    #         else:
-    #             temp_other_arr = np.array(np.where(self.state_t == i)).T
-    #             temp_other_list.extend(temp_other_arr.tolist())
-    #
-    #     # ここもめっちゃ重い
-    #     # tempのチャンネルに数値を入れる
-    #     for i, list in enumerate(temp_my_list):
-    #         temp_my[list[0], list[1]] = 1
-    #
-    #     if your_agents[0] != None:
-    #         for i, list in enumerate(temp_your0_list):
-    #             temp_your0[list[0], list[1]] = 1
-    #
-    #     if your_agents[1] != None:
-    #         for i, list in enumerate(temp_your1_list):
-    #             temp_your1[list[0], list[1]] = 1
-    #
-    #     if your_agents[2] != None:
-    #         for i, list in enumerate(temp_your2_list):
-    #             temp_your2[list[0], list[1]] = 1
-    #
-    #     if your_agents[3] != None:
-    #         for i, list in enumerate(temp_your3_list):
-    #             temp_your3[list[0], list[1]] = 1
-    #
-    #     for i, list in enumerate(temp_other_list):
-    #         temp_other[list[0], list[1]] = 1
-    #
-    #     for i, list in enumerate(temp_site_list):
-    #         temp_site[list[0], list[1]] = 1
-    #
-    #     state_channel = tuple((temp_my, temp_your0, temp_your1, temp_your2, temp_your3, temp_other, temp_site))
-    #     # state_channel = np.array((temp_my, temp_your, temp_other, temp_site))
-    #
-    #     return state_channel
+            state_channel = tuple((temp_my, temp_your0, temp_your1, temp_your2, temp_your3, temp_other, temp_site))
+            return state_channel
 
     def step_seed(self, action, now_agent, local_cnt):
         if local_cnt == 0:
