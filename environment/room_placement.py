@@ -117,8 +117,8 @@ class RoomPlacement:
         self.neighbor_list = []
 
         # 室の面積条件
-        self.room_upper = 16
-        self.room_downer = 9
+        self.room_upper = 20
+        self.room_downer = 12
         self.effective_len = 4
 
         # 環境の初期設定　空地 = -1, 外形 = -2, 室 = 0,1,2 ~
@@ -139,25 +139,10 @@ class RoomPlacement:
             self.state_t_1 = 0
 
         # 更新される環境
-
-        # channelの数が4
-        # self.state_4chan_0 = self.state_4chan(0, next_flag=False)
-        # self.next_state_4chan_0 = self.state_4chan(0, next_flag=True)
-
-        # input_channelの数が7
+        # input_channel
         self.state_shape = [7, self.col, self.row]
         self.state_channel_0 = self.state_channel(0, next_flag=False)
         self.next_state_channel_0 = self.state_channel(0, next_flag=True)
-
-
-        # yourの接続相手が単数 my: 1, your: 1, other: 1, site: 1
-        # self.state_shape = [4, 28, 28]
-
-        # yourの接続相手が複数　my: 1, your: 4, other: 1, site: 1
-        # self.state_shape = [7, 28, 28]
-        # self.state_shape = [7, self.col, self.row]
-
-        # self.state_4chan_t = copy.deepcopy(self.state_4chan_0)
 
         # 描画系の変数
         if not test:
