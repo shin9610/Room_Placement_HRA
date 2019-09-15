@@ -521,8 +521,10 @@ class RoomPlacement:
         if self.step_id == 0:
             # self.state_t = copy.deepcopy(self.state_0)
             self.state_t = np.copy(self.state_0)
+            self.limit_flag = False
         else:
             self.state_t = self.state_t_1
+            self.limit_flag = False
 
         # state_tの更新
         start = time.time()
@@ -677,6 +679,10 @@ class RoomPlacement:
         else:
             pass
 
+        # 衝突判定　→　移動先に何かある場合に移動
+        if len(index_add)==0:
+            self.limit_flag = True
+
         # 制約面積条件に乗らないのでpass
         # else:
         #     pass
@@ -778,6 +784,9 @@ class RoomPlacement:
             # 拡張後のエージェント更新
             for list in index_add:
                 self.state_t[list[0], list[1]] = now_agent
+        else:
+            # 衝突判定 →　拡大先に障害物あり．
+            self.limit_flag = True
 
     # 矩形拡大
     def update_expand_rect(self, action, now_agent):
@@ -1494,16 +1503,26 @@ class RoomPlacement:
                               (int(start_x+bar_col_w-20), int(start_y + (i * bar_span))),
                               (int(start_x + (q[i] * bar_row_h)), int(start_y + (i * bar_span) + bar_row_w)),
                               (18, 0, 230), thickness=-1)
+                if self.limit_flag:
+                    cv2.putText(self.img, a_names[i], (int(start_x - 100), (int(start_y + (i * bar_span) + bar_row_w))),
+                                font, font_size, (18, 0, 230))
+                else:
+                    cv2.putText(self.img, a_names[i], (int(start_x - 100), (int(start_y + (i * bar_span) + bar_row_w))),
+                                font, font_size, color)
+                cv2.putText(self.img, str(round(q[i], 2)),
+                            (start_x + bar_col_w - 17, (int(start_y + (i * bar_span) + bar_row_w))),
+                            font, font_size, (0, 0, 0))
             else:
                 cv2.rectangle(self.img,
                               (int(start_x+bar_col_w-20), int(start_y+(i*bar_span))),
                               (int(start_x + (q[i]*bar_row_h)), int(start_y+(i*bar_span)+bar_row_w)),
                               (200, 200, 200), thickness=-1)
-            cv2.putText(self.img, a_names[i], (int(start_x-100), (int(start_y+(i*bar_span)+bar_row_w))),
-                        font, font_size, color)
-            cv2.putText(self.img, str(round(q[i], 2)),
-                        (start_x+bar_col_w-17, (int(start_y+(i*bar_span)+bar_row_w))),
-                        font, font_size, (0, 0, 0))
+                cv2.putText(self.img, a_names[i], (int(start_x - 100), (int(start_y + (i * bar_span) + bar_row_w))),
+                            font, font_size, color)
+                cv2.putText(self.img, str(round(q[i], 2)),
+                            (start_x + bar_col_w - 17, (int(start_y + (i * bar_span) + bar_row_w))),
+                            font, font_size, (0, 0, 0))
+
         # ヘッドの名前
         if head_num==-1:
             cv2.putText(self.img, 'head_name: merged',
