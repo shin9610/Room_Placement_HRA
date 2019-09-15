@@ -40,9 +40,9 @@ class RoomPlacement:
 
         # 報酬と終了条件の初期化
         self.reward = 0
-        self.reward_scheme = {'connect': +1.0, 'shape': +1.0, 'area': +1.0}
-        # self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0,
-        #                       'shape': +1.0, 'area': +1.0}
+        # self.reward_scheme = {'connect': +1.0, 'shape': +1.0, 'area': +1.0}
+        self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0,
+                              'shape': +1.0, 'area': +1.0}
         # self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0}
         # self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0,
         #                       'area': +1.0}
@@ -50,9 +50,6 @@ class RoomPlacement:
         #                       'area': +1.0, 'Effective_dim': +1.0}
 
         self.reward_name = [name for i, name in enumerate(self.reward_scheme)]
-
-        # self.reward_scheme = {'connect': +1.0, 'shape': +1.0}
-        # self.reward_scheme = {'connect': +1.0}
         self.reward_len = len(self.reward_scheme)
         self.reward_channels = []
         self.step_id = 0
@@ -147,7 +144,7 @@ class RoomPlacement:
         # self.state_4chan_0 = self.state_4chan(0, next_flag=False)
         # self.next_state_4chan_0 = self.state_4chan(0, next_flag=True)
 
-        # channelの数が7
+        # input_channelの数が7
         self.state_shape = [7, self.col, self.row]
         self.state_channel_0 = self.state_channel(0, next_flag=False)
         self.next_state_channel_0 = self.state_channel(0, next_flag=True)
@@ -159,7 +156,6 @@ class RoomPlacement:
         # yourの接続相手が複数　my: 1, your: 4, other: 1, site: 1
         # self.state_shape = [7, 28, 28]
         # self.state_shape = [7, self.col, self.row]
-
 
         # self.state_4chan_t = copy.deepcopy(self.state_4chan_0)
 
@@ -174,7 +170,7 @@ class RoomPlacement:
         self.img_contents_x_span = 250
         self.img_contents_y_span = 250
         self.img_contents_x_num = self.n_agents + 1
-        self.img_contents_y_num = len(self.reward_scheme) + 2
+        self.img_contents_y_num = self.reward_len + 2
         self.img_row = self.img_contents_x_span * self.img_contents_x_num
         self.img_col = self.img_contents_y_span * self.img_contents_y_num
         self.img_grid_pitch = int(self.img_contents_x_span / self.row)
@@ -1145,24 +1141,25 @@ class RoomPlacement:
         neighbors, _, _ = self.neighbor_search(now_agent)
 
         for n, your_list in enumerate(self.your_agent[now_agent]):
-            # 接続に複数ヘッドあり
-            if your_list in neighbors and self.reward_len == 7:
-                head_reward[n] = self.reward_scheme['connect' + str(n)]
             # 接続に単数ヘッド
-            elif your_list in neighbors and self.reward_len == 3:
-                head_reward[0] += self.reward_scheme['connect']
-            elif your_list == None and self.reward_len == 7:
-                head_reward[n] = None
-
+            if 'connect' in self.reward_name:
+                if your_list in neighbors:
+                    head_reward[self.reward_name.index('connect')] += self.reward_scheme['connect']
+            # 接続に複数ヘッドあり
+            elif 'connect' not in self.reward_name:
+                if your_list in neighbors:
+                    head_reward[self.reward_name.index('connect' + str(n))] = self.reward_scheme['connect' + str(n)]
+                elif your_list == None:
+                    head_reward[self.reward_name.index('connect' + str(n))] = None
 
         # アスペクト比報酬を判定
         aspect, _, _ = self.aspect_search(now_agent)
         if aspect >= 0.8:
-            head_reward[1] = self.reward_scheme['shape']
+            head_reward[self.reward_name.index('shape')] = self.reward_scheme['shape']
 
         # 面積報酬を判定
         if self.room_downer <= self.area_search(now_agent) <= self.room_upper:
-            head_reward[2] = self.reward_scheme['area']
+            head_reward[self.reward_name.index('area')] = self.reward_scheme['area']
 
         # # 有効寸法を判定
         # if self.effective_len_search(now_agent):
@@ -1264,7 +1261,7 @@ class RoomPlacement:
                                             a_names=a_names, head_num=y - 2,
                                             font=font, font_size=font_size, color=color)
                             # もしagg_wなら赤枠を出力
-                            if self.agg_w_temps[x][y - 2][0] != 1:
+                            if self.agg_w_temps[x][y - 2][0] == 5:
                                 # cv2.rectangle(self.img, (knot_pts[x][y][0], knot_pts[x][y][1]),
                                 #               (knot_pts[x+1][y+1][0], knot_pts[x+1][y+1][1]), (18, 0, 230),
                                 #               thickness=1)
@@ -1279,6 +1276,45 @@ class RoomPlacement:
                             # reward textの出力
                             self.draw_texts(knot_pts[x][y+1][0], knot_pts[x][y+1][1] + 15, now_agent, a_names, action, step,
                                             reward, reward_total, font, font_size, color)
+
+
+            # 室配置，Q_headsの出力
+
+            # for x in range(len(agg_q) + 2):
+            #     for y in range(self.n_agents+1):
+            #         if y < self.n_agents:
+            #             # myのみに色を付けて出力
+            #             if x == 0:
+            #                 self.draw_room_placement(start_x=knot_pts[x][y][0], start_y=knot_pts[x][y][1], all=False,
+            #                                          now_agent=x,
+            #                                          font=font, font_size=font_size, color=color)
+            #             elif x == 1:
+            #                 self.draw_q_bar(start_x=knot_pts[x][y][0] + int(self.img_contents_x_span/2),
+            #                                 start_y=knot_pts[x][y][1], q=self.merged_q_temps[x][0], now_agent=now_agent,
+            #                                 a_names=a_names, head_num=y - 2,
+            #                                 font=font, font_size=font_size, color=color)
+            #             elif 1 < x:
+            #                 self.draw_q_bar(start_x=knot_pts[x][y][0] + int(self.img_contents_x_span/2),
+            #                                 start_y=knot_pts[x][y][1], q=self.agg_q_temps[x][y - 2][0],
+            #                                 now_agent=now_agent,
+            #                                 a_names=a_names, head_num=y - 2,
+            #                                 font=font, font_size=font_size, color=color)
+            #                 # もしagg_wなら赤枠を出力
+            #                 if self.agg_w_temps[x][y - 2][0] == 5:
+            #                     # cv2.rectangle(self.img, (knot_pts[x][y][0], knot_pts[x][y][1]),
+            #                     #               (knot_pts[x+1][y+1][0], knot_pts[x+1][y+1][1]), (18, 0, 230),
+            #                     #               thickness=1)
+            #                     cv2.rectangle(self.img, tuple(knot_pts[x][y]), (tuple(knot_pts[x + 1][y + 1])),
+            #                                   (18, 0, 230),
+            #                                   thickness=1)
+            #         elif y == self.n_agents:
+            #             if x == 0:
+            #                 # 全部のエージェントに色付けて出力
+            #                 self.draw_room_placement(start_x=knot_pts[x][y][0], start_y=knot_pts[x][y][1], all=True, now_agent=x,
+            #                                          font=font, font_size=font_size, color=color)
+            #                 # reward textの出力
+            #                 self.draw_texts(knot_pts[x][y+1][0], knot_pts[x][y+1][1] + 15, now_agent, a_names, action, step,
+            #                                 reward, reward_total, font, font_size, color)
 
             # fileへの出力
             if len(str(step)) == 4:
@@ -1465,12 +1501,12 @@ class RoomPlacement:
         for i in range(len(self.enable_actions)):
             if i == max_a_num:
                 cv2.rectangle(self.img,
-                              (start_x+bar_col_w-20, start_y + (i * bar_span)),
+                              (int(start_x+bar_col_w-20), int(start_y + (i * bar_span))),
                               (int(start_x + (q[i] * bar_row_h)), int(start_y + (i * bar_span) + bar_row_w)),
                               (18, 0, 230), thickness=-1)
             else:
                 cv2.rectangle(self.img,
-                              (start_x+bar_col_w-20, start_y+(i*bar_span)),
+                              (int(start_x+bar_col_w-20), int(start_y+(i*bar_span))),
                               (int(start_x + (q[i]*bar_row_h)), int(start_y+(i*bar_span)+bar_row_w)),
                               (200, 200, 200), thickness=-1)
             cv2.putText(self.img, a_names[i], (int(start_x-100), (int(start_y+(i*bar_span)+bar_row_w))),

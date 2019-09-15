@@ -231,48 +231,49 @@ class AI:
     def aggregator(self, reward_channels):
 
         if self.is_aggregator:
-            # # 接続報酬のインデックス
-            # connect_heads = reward_channels[0:4]
-            #
-            # # 接続条件を満たしていない場合
-            # if 0.0 in connect_heads:
-            #     for index, reward in enumerate(reward_channels):
-            #         # 接続報酬
-            #         if 0<=index<=3:
-            #             if reward == 1.0:
-            #                 self.agg_w[index][0][0] = 1
-            #             elif reward == 0.0:
-            #                 self.agg_w[index][0][0] = 5
-            #             elif np.isnan(reward):
-            #                 self.agg_w[index][0][0] = 0
-            #         # 面積，形状報酬，有効寸法
-            #         else:
-            #             self.agg_w[index][0][0] = 1
-            #
-            #
-            # # 接続条件を満たしている場合
-            # else:
-            #     for index, reward in enumerate(reward_channels):
-            #         # 接続報酬
-            #         if 0<=index<=3:
-            #             if reward == 1.0:
-            #                 self.agg_w[index][0][0] = 1
-            #             elif reward == 0.0:
-            #                 self.agg_w[index][0][0] = 1
-            #             elif np.isnan(reward):
-            #                 self.agg_w[index][0][0] = 0
-            #         # 面積，形状報酬，有効寸法
-            #         else:
-            #             self.agg_w[index][0][0] = 5
+            # 接続報酬のインデックス
+            connect_heads = reward_channels[0:4]
 
-            if reward_channels[0] != 2.0:
-                self.agg_w[0][0][0] = 5 # connect
-                self.agg_w[1][0][0] = 1 # shape
-                self.agg_w[2][0][0] = 1 # area
+            # 接続条件を満たしていない場合
+            if 0.0 in connect_heads:
+                for index, reward in enumerate(reward_channels):
+                    # 接続報酬
+                    if 0<=index<=3:
+                        if reward == 1.0:
+                            self.agg_w[index][0][0] = 1
+                        elif reward == 0.0:
+                            self.agg_w[index][0][0] = 5
+                        elif np.isnan(reward):
+                            self.agg_w[index][0][0] = 0.1
+                    # 面積，形状報酬，有効寸法
+                    else:
+                        self.agg_w[index][0][0] = 1
+
+            # 接続条件を満たしている場合
             else:
-                self.agg_w[0][0][0] = 1
-                self.agg_w[1][0][0] = 1
-                self.agg_w[2][0][0] = 5
+                for index, reward in enumerate(reward_channels):
+                    # 接続報酬
+                    if 0<=index<=3:
+                        if reward == 1.0:
+                            self.agg_w[index][0][0] = 1
+                        elif reward == 0.0:
+                            self.agg_w[index][0][0] = 1
+                        elif np.isnan(reward):
+                            self.agg_w[index][0][0] = 0.1
+                    # 面積，形状報酬，有効寸法
+                    else:
+                        self.agg_w[index][0][0] = 5
+
+
+            # # 単数接続用のagg
+            # if reward_channels[0] != 2.0:
+            #     self.agg_w[0][0][0] = 5 # connect
+            #     self.agg_w[1][0][0] = 1 # shape
+            #     self.agg_w[2][0][0] = 1 # area
+            # else:
+            #     self.agg_w[0][0][0] = 1
+            #     self.agg_w[1][0][0] = 1
+            #     self.agg_w[2][0][0] = 5
 
         else:
             raise ValueError("not use aggregator")
