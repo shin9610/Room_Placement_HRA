@@ -1154,7 +1154,7 @@ class RoomPlacement:
 
         # アスペクト比報酬を判定
         aspect, _, _ = self.aspect_search(now_agent)
-        if aspect == 1.0:
+        if aspect == 0.8:
             head_reward[self.reward_name.index('shape')] = self.reward_scheme['shape']
 
         # 面積報酬を判定
