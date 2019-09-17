@@ -64,6 +64,7 @@ class RoomPlacement:
         else:
             self.random_flag = True
 
+        self.init_random_iter = 30
         self.evely_random_flag = False
         self.n_agents = 4
         self.room_col = 3
@@ -104,15 +105,15 @@ class RoomPlacement:
         #                    [4, None, None, None],
         #                    [5, None, None, None]]
 
-        self.your_agent = [[1, 3, None, None],
-                           [0, 2, None, None],
-                           [1, 3, None, None],
-                           [0, 2, None, None]]
+        # self.your_agent = [[1, 3, None, None],
+        #                    [0, 2, None, None],
+        #                    [1, 3, None, None],
+        #                    [0, 2, None, None]]
 
-        # self.your_agent = [[1, None, None, None],
-        #                    [0, None, None, None],
-        #                    [3, None, None, None],
-        #                    [2, None, None, None]]
+        self.your_agent = [[1, None, None, None],
+                           [0, None, None, None],
+                           [3, None, None, None],
+                           [2, None, None, None]]
 
         self.neighbor_list = []
 
@@ -306,7 +307,7 @@ class RoomPlacement:
 
                     self.step_seed(action, num, local_cnt)
                     local_cnt += 1
-                    if local_cnt > self.n_agents:
+                    if local_cnt > self.n_agents*3:
                         term = True
                         break
 
@@ -1145,8 +1146,8 @@ class RoomPlacement:
                     if not self.limit_flag:
                         head_reward[self.reward_name.index('connect' + str(n))] = self.reward_scheme['connect' + str(n)]
                     else:
-                        # head_reward[self.reward_name.index('connect' + str(n))] = -0.1
-                        head_reward[self.reward_name.index('connect' + str(n))] = self.reward_scheme['connect' + str(n)]
+                        head_reward[self.reward_name.index('connect' + str(n))] = -0.1
+                        # head_reward[self.reward_name.index('connect' + str(n))] = self.reward_scheme['connect' + str(n)]
 
                 elif your_list == None:
                     head_reward[self.reward_name.index('connect' + str(n))] = None
@@ -1263,9 +1264,6 @@ class RoomPlacement:
                                             font=font, font_size=font_size, color=color)
                             # もしagg_wなら赤枠を出力
                             if self.agg_w_temps[x][y - 2][0] == 5:
-                                # cv2.rectangle(self.img, (knot_pts[x][y][0], knot_pts[x][y][1]),
-                                #               (knot_pts[x+1][y+1][0], knot_pts[x+1][y+1][1]), (18, 0, 230),
-                                #               thickness=1)
                                 cv2.rectangle(self.img, tuple(knot_pts[x][y]),
                                               (knot_pts[x][y][0]+self.img_contents_x_span, knot_pts[x][y][1]+self.img_contents_y_span),
                                               (18, 0, 230),
@@ -1278,7 +1276,6 @@ class RoomPlacement:
                             # reward textの出力
                             self.draw_texts(knot_pts[x][y+1][0], knot_pts[x][y+1][1] + 15, now_agent, a_names, action, step,
                                             reward, reward_total, font, font_size, color)
-
 
             # 室配置，Q_headsの出力
 
