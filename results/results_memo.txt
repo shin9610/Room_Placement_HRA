@@ -1,11 +1,6 @@
 ---
--> results -> results_memo
-各コードでのパラメータ変更点などを記す．
----
+memo example
+write change points
 
-
-
-
-
-
+-
 ---

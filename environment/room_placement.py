@@ -35,17 +35,17 @@ class RoomPlacement:
 
         # 0, 1, 2, 3: 移動，4, 5, 6, 7: 拡大， 8, 9, 10, 11: 縮小，12: 停止
         # 0, 1, 2, 3: 移動，4, 5, 6, 7, 8, 9, 10, 11: 変形，12: 停止
-        # self.enable_actions = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
-        self.enable_actions = (0, 1, 2, 3, 12)
+        self.enable_actions = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
+        # self.enable_actions = (0, 1, 2, 3, 12)
 
         self.num_actions = len(self.enable_actions)
 
         # 報酬と終了条件の初期化
         self.reward = 0
         # self.reward_scheme = {'connect': +1.0, 'shape': +1.0, 'area': +1.0}
-        # self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0,
-        #                       'shape': +1.0, 'area': +1.0}
-        self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0}
+        self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0,
+                              'shape': +1.0, 'area': +1.0}
+        # self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0}
         # self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0,
         #                       'area': +1.0}
         # self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0,
@@ -68,7 +68,7 @@ class RoomPlacement:
 
         self.init_random_iter = 30
         self.evely_random_flag = False
-        self.n_agents = 4
+        self.n_agents = 8
         self.room_col = 3
         self.room_row = 3
         self.room_size = self.room_col * self.room_row
@@ -98,19 +98,19 @@ class RoomPlacement:
         #                    [7, None, None, None],
         #                    [6, None, None, None]]
 
-        # self.your_agent = [[1, None, None, None],
-        #                    [0, 2, None, None],
-        #                    [1, 3, None, None],
-        #                    [2, None, None, None],
-        #                    [6, 5, None, None],
-        #                    [4, 7, None, None],
-        #                    [4, None, None, None],
-        #                    [5, None, None, None]]
-
-        self.your_agent = [[1, 3, None, None],
+        self.your_agent = [[1, None, None, None],
                            [0, 2, None, None],
                            [1, 3, None, None],
-                           [0, 2, None, None]]
+                           [2, None, None, None],
+                           [6, 5, None, None],
+                           [4, 7, None, None],
+                           [4, None, None, None],
+                           [5, None, None, None]]
+
+        # self.your_agent = [[1, 3, None, None],
+        #                    [0, 2, None, None],
+        #                    [1, 3, None, None],
+        #                    [0, 2, None, None]]
 
         # self.your_agent = [[1, None, None, None],
         #                    [0, None, None, None],
@@ -538,11 +538,11 @@ class RoomPlacement:
         start = time.time()
         if 0 <= action <= 3:
             # self.update_move(action, now_agent)
-            self.update_move_rect(action, now_agent)
-        # elif 4 <= action <= 7:
-        #     self.update_expand(action, now_agent)
-        # elif 8 <= action <= 11:
-        #     self.update_reduction(action, now_agent)
+            self.update_move(action, now_agent)
+        elif 4 <= action <= 7:
+            self.update_expand(action, now_agent)
+        elif 8 <= action <= 11:
+            self.update_reduction(action, now_agent)
         elif action == 12:
             self.update_non(action)
 
@@ -1295,6 +1295,7 @@ class RoomPlacement:
                             # reward textの出力
                             self.draw_texts(knot_pts[x][y+1][0], knot_pts[x][y+1][1] + 15, now_agent, a_names, action, step,
                                             reward, reward_total, font, font_size, color)
+                            self.draw_memo_texts(knot_pts[x][y+1][0], knot_pts[x][y+2][1] + 15, font, font_size, color)
 
             # fileへの出力
             if len(str(step)) == 4:
@@ -1528,6 +1529,21 @@ class RoomPlacement:
         cv2.putText(self.img, 'step: ' + str(step), (start_x, start_y + 30), font, font_size, color)
         cv2.putText(self.img, 'reward: ' + str(reward), (start_x, start_y + 45), font, font_size, color)
         cv2.putText(self.img, 'reward_total: ' + str(reward_total), (start_x, start_y + 60), font, font_size, color)
+
+    def draw_memo_texts(self, start_x, start_y, font, font_size, color):
+        # txtファイルを開く
+        memo_data = open('results/results_memo.txt', 'r', encoding="utf-8_sig")
+        text_lines = memo_data.readlines()
+        # 改行コードを取り除く
+        for i, line in enumerate(text_lines):
+            text_lines[i] = line.replace('\n','')
+
+        memo_data.close()
+
+        for i, text_line in enumerate(text_lines):
+            cv2.putText(self.img, text_line, (start_x, start_y+(i*15)), font, font_size, color)
+
+
 
     # def gif_animation(self, episode):
     #     if episode % self.draw_movie_freq == 0 and episode != 0:
