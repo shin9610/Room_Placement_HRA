@@ -158,7 +158,7 @@ class AI:
             if self.use_hra:
                 # cost = lossの計算
                 # cost = self._compute_cost(qs[-1], a, r[:, i], t, q2s[-1])
-                cost = self._compute_cost_huber(qs[-1], a, r[:, i], t, q2s[-1])
+                cost = self._compute_cost(qs[-1], a, r[:, i], t, q2s[-1])
 
                 optimizer = RMSprop(lr=self.learning_rate, rho=.95, epsilon=1e-7)
 
@@ -181,6 +181,7 @@ class AI:
         # self._train_on_batch = K.function(inputs=[s, a, r, s2, t], outputs=[costs], updates=updates)
         self._train_on_batch = K.function(inputs=[s, a, r, s2, t], outputs=costs_list, updates=updates)
         self.predict_network = K.function(inputs=[s], outputs=qs)
+        self.predict_target_network = K.function(inputs=[s], outputs=qs)
         self.update_weights = K.function(inputs=[], outputs=[], updates=target_updates)
 
     def update_epsilon(self):
@@ -241,7 +242,6 @@ class AI:
             return self.get_max_action(states=states)[0]
             # return self.rng.randint(self.nb_actions)
 
-
     def aggregator(self, reward_channels):
 
         if self.is_aggregator:
@@ -292,6 +292,38 @@ class AI:
         else:
             raise ValueError("not use aggregator")
 
+    def get_TDerror(self):
+        sum_TDerror = 0
+        s, a, r, s2, t = self.transitions.temp_D[len(self.transitions.temp_D)-1]
+        a = [a]
+        a2 = self.get_max_action(s2) # t+1での最大行動
+
+        s = np.expand_dims(s, axis=0)
+        s2 = np.expand_dims(s2, axis=0)
+
+        for i in range(len(self.networks)):
+            # 各headでTD errorを計算して，それをsum
+            target = r[i] + self.gamma * np.array(self.predict_target_network([s2]))[i][0][a2][0] # target_netから
+            TDerror = target - np.array(self.predict_target_network([s]))[i][0][a][0]
+            sum_TDerror += TDerror
+
+        return sum_TDerror
+
+    def update_TDerror(self):
+        for i in range(0, len(self.transitions.D)-1):
+            (s, a, r, s2) = self.transitions.D[i]
+            a2 = self.get_max_action(s2)
+            target = r + self.gamma * self.predict_target_network([s2])[a2]
+            TDerror = target - self.predict_target_network([s])[a]
+            self.transitions.TDerror_buffer[i] = TDerror
+
+    def get_sum_abs_TDerror(self):
+        sum_abs_TDerror = 0
+        for i in range(0, len(self.transitions.D)-1):
+            sum_abs_TDerror += abs(self.transitions.TDerror_buffer[i]) + 0.0001 # 最新の状態データを取得
+
+        return sum_abs_TDerror
+
     def train_on_batch(self, s, a, r, s2, t):
         # 元コード　expand_dimsをしている
         # s = self._reshape(s)
@@ -324,6 +356,12 @@ class AI:
         learn_time = time.time() - start_time
 
         return cost_channel, learn_time
+
+    def prioritized_exp_replay(self):
+        sum_abs_TDerror = self.get_sum_abs_TDerror()
+        generatedrand_list = np.random.uniform(0, sum_abs_TDerror, self.minibatch_size)
+        generatedrand_list = np.sort(generatedrand_list)
+
 
     def dump_network(self, weights_file_path='q_network_weights.h5', overwrite=True):
         for i, network in enumerate(self.networks):

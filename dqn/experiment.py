@@ -263,7 +263,6 @@ class DQNExperiment(object):
                 # replayのminより経験の数が多い　＋　学習フラグあり　＋　replayの頻度
                 if len(self.ai.transitions.D) >= self.replay_min_size and is_learning and \
                         self.last_episode_steps % self.ai.learning_frequency == 0:
-
                     # 学習を行う →　learn()　→　train_on_batch()　→　_train_on_batch()
                     cost_channel, self.learn_time = self.ai.learn()
                     cost_channels.append(cost_channel)
@@ -279,6 +278,11 @@ class DQNExperiment(object):
                 if not evaluate:
                     start = time.time()
                     self.ai.transitions.store_temp_exp(np.array((state_t)), action, reward_channels, np.array((state_t_1)), term)
+
+                    # # TD誤差の計算，格納
+                    # TDerror = self.ai.get_TDerror()
+                    # self.ai.transitions.TDerror_buffer.append(TDerror)
+
                     store_D_time = round(time.time() - start, 8)
                     self.total_training_steps += 1
 
@@ -298,6 +302,7 @@ class DQNExperiment(object):
                         self.ave_score, self.temp_scores = \
                             compute_ave(self.score, self.temp_scores, self.ave_score, self.episode_num, div=20)
                         self.ai.transitions.store_exp(self.score, self.ave_score)
+
                         self.ai.update_epsilon()
                         # print('store_temp_D')
 

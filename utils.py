@@ -200,6 +200,7 @@ class ExperienceReplay(object):
         self.D = deque(maxlen=self.max_size)
         self.temp_D = deque(maxlen=self.max_size)
         self.temp_rot_D = deque(maxlen=self.max_size)
+        self.TDerror_buffer = deque(maxlen=self.max_size)
 
         self.states = np.zeros([self.max_size] + list(self.state_shape), dtype=self.state_dtype)
         self.terms = np.zeros(self.max_size, dtype='bool')
@@ -271,6 +272,7 @@ class ExperienceReplay(object):
                 shuffle_reward[num] = 0.
 
         self.temp_D.append((shuffle_states, action, shuffle_reward, shuffle_states_1, terminal))
+
 
         # self.temp_D.append((states, action, reward, states_1, terminal))
         # print(np.array(states, action, reward, states_1, terminal))
@@ -385,6 +387,5 @@ class ExperienceReplay(object):
         states[1:5], reward[0:4], states_1[1:5] = tupled_states[0:4], tupled_reward[0:4], tupled_states_1[0:4]
 
         return states, states_1, reward
-
 
 
