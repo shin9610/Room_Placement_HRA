@@ -28,7 +28,7 @@ history_len: 1
 replay_max_size: 50000
 replay_min_size: 5000
 learning_frequency: 100
-update_freq: 100
+update_freq: 20
 action_dim: 1
 num_units: 250
 

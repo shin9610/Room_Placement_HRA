@@ -64,7 +64,7 @@ class RoomPlacement:
         if not test:
             self.random_flag = False
         else:
-            self.random_flag = False
+            self.random_flag = True
 
         self.init_random_iter = 30
         self.evely_random_flag = False
@@ -97,7 +97,7 @@ class RoomPlacement:
         #                    [4, None, None, None],
         #                    [7, None, None, None],
         #                    [6, None, None, None]]
-
+        #
         self.your_agent = [[1, None, None, None],
                            [0, 2, None, None],
                            [1, 3, None, None],
@@ -314,7 +314,7 @@ class RoomPlacement:
 
                     self.step_seed(action, num, local_cnt)
                     local_cnt += 1
-                    if local_cnt > self.n_agents*3:
+                    if local_cnt > self.n_agents*5:
                         term = True
                         break
 
@@ -1168,7 +1168,7 @@ class RoomPlacement:
             if aspect >= 0.7:
                 head_reward[self.reward_name.index('shape')] = self.reward_scheme['shape']
             if aspect >= 0.9:
-                head_reward[self.reward_name.index('shape')] = self.reward_scheme['shape']+10
+                head_reward[self.reward_name.index('shape')] = self.reward_scheme['shape']+0.5
 
         # 面積報酬を判定
         if 'area' in self.reward_name:

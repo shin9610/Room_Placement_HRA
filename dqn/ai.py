@@ -113,6 +113,18 @@ class AI:
         cost = K.sum((targets - preds) ** 2)
         return cost
 
+    def _compute_cost_huber(self, q, a, r, t, q2):
+        preds = slice_tensor_tensor(q, a)
+        bootstrap = K.max if not self.use_mean else K.mean
+        targets = r + (1 - t) * self.gamma * bootstrap(q2, axis=1)
+        err = targets - preds
+        cond = K.abs(err) > 1.0
+        L2 = 0.5 * K.square(err)
+        L1 = (K.abs(err)-0.5)
+        cost = tf.where(cond, L2, L1)
+        return K.mean(cost)
+
+
     def _compile_learning(self):
         # ミニバッチの状態で入力できるようにするplaceholder
 
@@ -145,7 +157,9 @@ class AI:
 
             if self.use_hra:
                 # cost = lossの計算
-                cost = self._compute_cost(qs[-1], a, r[:, i], t, q2s[-1])
+                # cost = self._compute_cost(qs[-1], a, r[:, i], t, q2s[-1])
+                cost = self._compute_cost_huber(qs[-1], a, r[:, i], t, q2s[-1])
+
                 optimizer = RMSprop(lr=self.learning_rate, rho=.95, epsilon=1e-7)
 
                 # 学習設定
