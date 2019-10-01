@@ -148,7 +148,7 @@ class RoomPlacement:
 
         # 更新される環境
         # input_channel
-        self.state_shape = [12, self.col, self.row]
+        self.state_shape = [7, self.col, self.row]
         self.state_channel_0 = self.state_channel(0, next_flag=False)
         self.next_state_channel_0 = self.state_channel(0, next_flag=True)
 

@@ -20,7 +20,7 @@ floatX = 'float32'
 
 class AI:
     def __init__(self, state_shape, nb_actions, action_dim, reward_dim, history_len=1, gamma=.99, is_aggregator=True,
-                 learning_rate=0.00025, annealing=True, annealing_episodes=5000, epsilon=1.0, final_epsilon=0.05, test_epsilon=0.001,
+                 learning_rate=0.00025, final_lr=0.001, annealing_lr=True, annealing=True, annealing_episodes=5000, epsilon=1.0, final_epsilon=0.05, test_epsilon=0.001,
                 minibatch_size=32, replay_max_size=100, replay_memory_size=50000,
                  update_freq=50, learning_frequency=1,
                  num_units=250, remove_features=False, use_mean=False, use_hra=True, rng=None, test=False, transfer_learn=False):
@@ -32,8 +32,6 @@ class AI:
         self.action_dim = action_dim
         self.reward_dim = reward_dim
         self.gamma = gamma
-        self.learning_rate = learning_rate
-        self.learning_rate_start = learning_rate
 
         self.is_aggregator = is_aggregator
         self.agg_w = np.ones((self.reward_dim, 1, 1))
@@ -52,6 +50,15 @@ class AI:
         self.annealing = annealing
         self.annealing_episodes = annealing_episodes
         self.annealing_episode = (self.start_epsilon - self.final_epsilon) / self.annealing_episodes
+
+
+        self.learning_rate = learning_rate
+        self.start_lr = learning_rate
+        self.final_lr = final_lr
+        self.annealing_lr = annealing_lr
+        self.annealing_episode_lr = (self.start_lr - self.final_lr) / self.annealing_episodes
+
+
         self.get_action_time_channel = np.zeros(4)
         self.get_max_a_time_channel = np.zeros(3)
 
@@ -189,6 +196,13 @@ class AI:
             self.epsilon -= self.annealing_episode * 1
             if self.epsilon < self.final_epsilon:
                 self.epsilon = self.final_epsilon
+
+    def update_lr(self):
+        if self.annealing_lr:
+            if self.learning_rate > self.final_lr:
+                self.learning_rate -= self.annealing_episode_lr * 1
+                if self.learning_rate < self.final_lr:
+                    self.learning_rate = self.final_lr
 
     def get_max_action(self, states):
         # stateのreshape: 未実装

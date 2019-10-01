@@ -304,6 +304,7 @@ class DQNExperiment(object):
                         self.ai.transitions.store_exp(self.score, self.ave_score)
 
                         self.ai.update_epsilon()
+                        self.ai.update_lr()
                         # print('store_temp_D')
 
                     # self.env.reset()

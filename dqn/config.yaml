@@ -22,7 +22,10 @@ test_epsilon: 0.001
 
 is_aggregator: True
 
+annealing_lr: True
 learning_rate: 0.001
+final_lr: 0.00001
+
 minibatch_size: 32
 history_len: 1
 replay_max_size: 50000
