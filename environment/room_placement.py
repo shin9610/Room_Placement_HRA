@@ -67,7 +67,7 @@ class RoomPlacement:
             self.random_flag = True
 
         self.init_random_iter = 30
-        self.evely_random_flag = False
+        self.evely_random_flag = True
         self.n_agents = 8
         self.room_col = 3
         self.room_row = 3

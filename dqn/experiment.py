@@ -56,8 +56,8 @@ class DQNExperiment(object):
             test_scores, test_scores_connect, test_scores_shape, test_scores_area,test_scores_eff_len, _, _, _, _, _ = \
                 self.do_episodes(number=eps_per_test, is_learning=False)
             print('Test_Score: ' + str(test_scores) + '\n')
-            # print('connect/shape/area: ' + str(test_scores_connect) + '/' + str(test_scores_shape) + '/' + str(test_scores_area))
-            print('connect/effective_len: ' + str(test_scores_connect) + '/' + str(test_scores_eff_len))
+            print('connect/shape/area: ' + str(test_scores_connect) + '/' + str(test_scores_shape) + '/' + str(test_scores_area))
+            # print('connect/effective_len: ' + str(test_scores_connect) + '/' + str(test_scores_eff_len))
             # 動画の作成
             self.env.movie(self.episode_num, self.folder_name_images, self.folder_name_movies)
 
