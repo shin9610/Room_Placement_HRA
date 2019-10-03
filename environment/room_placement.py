@@ -62,7 +62,7 @@ class RoomPlacement:
 
         # 室の初期設定
         if not test:
-            self.random_flag = False
+            self.random_flag = True
         else:
             self.random_flag = True
 
