@@ -33,7 +33,8 @@ def worker(params):
     # AI class : 学習モデルの構築・コンパイルなどを定義するクラス
     ai = AI(env.state_shape, env.num_actions, params['action_dim'], params['reward_dim'],
                 history_len=params['history_len'], gamma=params['gamma'], is_aggregator=params['is_aggregator'],
-                learning_rate=params['learning_rate'], final_lr=params['final_lr'], annealing_lr=params['annealing_lr'],
+                learning_rate=params['learning_rate'], transfer_lr=params['transfer_lr'], final_lr=params['final_lr'],
+                annealing_lr=params['annealing_lr'],
                 annealing=params['annealing'], annealing_episodes=params['annealing_episodes'],
                 epsilon=params['epsilon'], final_epsilon=params['final_epsilon'], test_epsilon=params['test_epsilon'],
                 minibatch_size=params['minibatch_size'], replay_max_size=params['replay_max_size'],

@@ -9,10 +9,10 @@ max_start_nullops: 0
 is_testing: True
 eps_per_test: 1
 episode_max_len: 10000
-step_max_len: 100
+step_max_len: 1000
 folder_location: '/results/'
 test: False
-transfer: False
+transfer: True
 
 annealing: True
 annealing_episodes: 10000
@@ -23,7 +23,8 @@ test_epsilon: 0.001
 is_aggregator: True
 
 annealing_lr: False
-learning_rate: 0.001
+learning_rate: 0.001 # default
+transfer_lr: 0.0001
 final_lr: 0.00001
 
 minibatch_size: 32

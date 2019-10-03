@@ -20,10 +20,13 @@ floatX = 'float32'
 
 class AI:
     def __init__(self, state_shape, nb_actions, action_dim, reward_dim, history_len=1, gamma=.99, is_aggregator=True,
-                 learning_rate=0.00025, final_lr=0.001, annealing_lr=True, annealing=True, annealing_episodes=5000, epsilon=1.0, final_epsilon=0.05, test_epsilon=0.001,
+                 learning_rate=0.00025, transfer_lr=0.0001, final_lr=0.001, annealing_lr=True, annealing=True, annealing_episodes=5000, epsilon=1.0, final_epsilon=0.05, test_epsilon=0.001,
                 minibatch_size=32, replay_max_size=100, replay_memory_size=50000,
                  update_freq=50, learning_frequency=1,
                  num_units=250, remove_features=False, use_mean=False, use_hra=True, rng=None, test=False, transfer_learn=False):
+        self.test = test
+        self.transfer_learn = transfer_learn
+
         self.rng = rng
         self.history_len = history_len
         # self.state_shape = [1] + state_shape # この操作が謎　
@@ -51,13 +54,15 @@ class AI:
         self.annealing_episodes = annealing_episodes
         self.annealing_episode = (self.start_epsilon - self.final_epsilon) / self.annealing_episodes
 
-
-        self.learning_rate = learning_rate
-        self.start_lr = learning_rate
+        if not self.transfer_learn:
+            self.learning_rate = learning_rate
+            self.start_lr = learning_rate
+        else:
+            self.learning_rate = transfer_lr
+            self.start_lr = transfer_lr
         self.final_lr = final_lr
         self.annealing_lr = annealing_lr
         self.annealing_episode_lr = (self.start_lr - self.final_lr) / self.annealing_episodes
-
 
         self.get_action_time_channel = np.zeros(4)
         self.get_max_a_time_channel = np.zeros(3)
@@ -72,9 +77,6 @@ class AI:
         self.learning_frequency = learning_frequency
         self.replay_max_size = replay_max_size
         self.replay_memory_size = replay_memory_size
-
-        self.test = test
-        self.transfer_learn = transfer_learn
 
         self.transitions = ExperienceReplay(max_size=self.replay_max_size, history_len=history_len, rng=self.rng,
                                             state_shape=state_shape, action_dim=action_dim, reward_dim=reward_dim)
@@ -96,6 +98,7 @@ class AI:
             if self.transfer_learn:
                 self.load_weights(weights_file_path='./learned_weights/init_weights_7chan/q_network_weights.h5')
                 print('Compiled Model. -- Transfer Learning -- ')
+                print('learning rate: ' + str(self.learning_rate))
             else:
                 print('Compiled Model. -- Learning -- ')
 
