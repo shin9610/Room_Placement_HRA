@@ -44,7 +44,7 @@ class RoomPlacement:
         self.reward = 0
         # self.reward_scheme = {'connect': +1.0, 'shape': +1.0, 'area': +1.0}
         self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0,
-                              'shape': +1.0, 'area': +1.0}
+                              'shape': +1.5, 'area': +1.0}
         # self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0}
         # self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0,
         #                       'area': +1.0}
@@ -62,12 +62,12 @@ class RoomPlacement:
 
         # 室の初期設定
         if not test:
-            self.random_flag = True
+            self.random_flag = False
         else:
-            self.random_flag = True
+            self.random_flag = False
 
         self.init_random_iter = 30
-        self.evely_random_flag = True
+        self.evely_random_flag = False
         self.n_agents = 8
         self.room_col = 3
         self.room_row = 3
@@ -1226,11 +1226,11 @@ class RoomPlacement:
         if 'shape' in self.reward_name:
             aspect, _, _ = self.aspect_search(now_agent)
             if aspect >= 0.5:
-                head_reward[self.reward_name.index('shape')] = self.reward_scheme['shape']-0.8
+                head_reward[self.reward_name.index('shape')] = self.reward_scheme['shape']-1.2
             if aspect >= 0.7:
-                head_reward[self.reward_name.index('shape')] = self.reward_scheme['shape']
+                head_reward[self.reward_name.index('shape')] = self.reward_scheme['shape']-0.5
             if aspect >= 0.9:
-                head_reward[self.reward_name.index('shape')] = self.reward_scheme['shape']+0.5
+                head_reward[self.reward_name.index('shape')] = self.reward_scheme['shape']
 
         # 面積報酬を判定
         if 'area' in self.reward_name:
@@ -1250,17 +1250,28 @@ class RoomPlacement:
         # return reward_connect, head_reward
 
     def reward_all_condition(self, now_agent):
-        cnt = 0
-        for i in range(self.n_agents):
-            if not i == now_agent:
-                _, head_reward = self.reward_condition(i)
-                if sum(head_reward) == 4.0: # 報酬条件ベタ打ち…
-                    cnt += 1
+        # cnt = 0
+        # for i in range(self.n_agents):
+        #     if not i == now_agent:
+        #         _, head_reward = self.reward_condition(i)
+        #         if sum(head_reward) == 4.0: # 報酬条件ベタ打ち…
+        #             cnt += 1
+        #
+        # if cnt == self.n_agents-1:
+        #     self.term = True
+        #     self.game_over = True
+        #     print('all agents get reward')
 
-        if cnt == self.n_agents-1:
+        # print(np.array(self.your_agent[now_agent]))
+        self.term = False
+        connect_num = sum([1 for i in self.your_agent[now_agent] if i is not None])
+        max_reward = self.reward_scheme['connect0']*connect_num \
+                     + self.reward_scheme['shape'] + self.reward_scheme['area']
+
+        if round(self.reward, 1) == max_reward:
             self.term = True
-            self.game_over = True
-            print('all agents get reward')
+            # print('agent got max reward')
+
 
     def number_to_color(self, num):
         # 赤系統
