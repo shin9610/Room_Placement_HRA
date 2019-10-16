@@ -68,7 +68,7 @@ class RoomPlacement:
 
         self.init_random_iter = 30
         self.evely_random_flag = False
-        self.n_agents = 8
+        self.n_agents = 4
         self.room_col = 3
         self.room_row = 3
         self.room_size = self.room_col * self.room_row
@@ -98,19 +98,19 @@ class RoomPlacement:
         #                    [7, None, None, None],
         #                    [6, None, None, None]]
         #
-        self.your_agent = [[1, None, None, None],
-                           [0, 2, None, None],
-                           [1, 3, None, None],
-                           [2, None, None, None],
-                           [6, 5, None, None],
-                           [4, 7, None, None],
-                           [4, None, None, None],
-                           [5, None, None, None]]
-
-        # self.your_agent = [[1, 3, None, None],
+        # self.your_agent = [[1, None, None, None],
         #                    [0, 2, None, None],
         #                    [1, 3, None, None],
-        #                    [0, 2, None, None]]
+        #                    [2, None, None, None],
+        #                    [6, 5, None, None],
+        #                    [4, 7, None, None],
+        #                    [4, None, None, None],
+        #                    [5, None, None, None]]
+
+        self.your_agent = [[1, 3, None, None],
+                           [0, 2, None, None],
+                           [1, 3, None, None],
+                           [0, 2, None, None]]
 
         # self.your_agent = [[1, None, None, None],
         #                    [0, None, None, None],
@@ -1205,22 +1205,39 @@ class RoomPlacement:
 
         neighbors, _, _ = self.neighbor_search(now_agent)
 
+        # # 接続であれば，衝突判定を観測
+        # for n, your_list in enumerate(self.your_agent[now_agent]):
+        #     # 接続に単数ヘッド
+        #     if 'connect' in self.reward_name:
+        #         if your_list in neighbors:
+        #             head_reward[self.reward_name.index('connect')] += self.reward_scheme['connect']
+        #     # 接続に複数ヘッドあり
+        #     elif 'connect' not in self.reward_name:
+        #         if your_list in neighbors:
+        #             if not self.limit_flag:
+        #                 head_reward[self.reward_name.index('connect' + str(n))] = self.reward_scheme['connect' + str(n)]
+        #             else:
+        #                 head_reward[self.reward_name.index('connect' + str(n))] = -0.1
+        #
+        #         elif your_list == None:
+        #             head_reward[self.reward_name.index('connect' + str(n))] = None
+
+
+        # 接続に関わらず衝突判定を観測
         for n, your_list in enumerate(self.your_agent[now_agent]):
-            # 接続に単数ヘッド
-            if 'connect' in self.reward_name:
-                if your_list in neighbors:
-                    head_reward[self.reward_name.index('connect')] += self.reward_scheme['connect']
-            # 接続に複数ヘッドあり
-            elif 'connect' not in self.reward_name:
-                if your_list in neighbors:
-                    if not self.limit_flag:
+            if your_list != None:
+                # 衝突フラグ(壁，エージェント)に入れば負の報酬
+                if self.limit_flag:
+                    head_reward[self.reward_name.index('connect' + str(n))] = -0.1
+                # 入らなければ，接続を観測して正の報酬
+                else:
+                    if your_list in neighbors:
                         head_reward[self.reward_name.index('connect' + str(n))] = self.reward_scheme['connect' + str(n)]
                     else:
-                        head_reward[self.reward_name.index('connect' + str(n))] = -0.1
-                        # head_reward[self.reward_name.index('connect' + str(n))] = self.reward_scheme['connect' + str(n)]
+                        head_reward[self.reward_name.index('connect' + str(n))] = 0
+            elif your_list == None:
+                head_reward[self.reward_name.index('connect' + str(n))] = None
 
-                elif your_list == None:
-                    head_reward[self.reward_name.index('connect' + str(n))] = None
 
         # アスペクト比報酬を判定
         if 'shape' in self.reward_name:
@@ -1271,7 +1288,6 @@ class RoomPlacement:
         if round(self.reward, 1) == max_reward:
             self.term = True
             # print('agent got max reward')
-
 
     def number_to_color(self, num):
         # 赤系統
