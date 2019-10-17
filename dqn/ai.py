@@ -266,9 +266,11 @@ class AI:
         if self.is_aggregator:
             # 接続報酬のインデックス
             connect_heads = reward_channels[0:4]
+            connect_num = sum(1 for i in connect_heads if not np.isnan(i))
+            connect_reward = sum(i for i in connect_heads if not np.isnan(i))
 
-            # 接続条件を満たしていない場合
-            if 0.0 in connect_heads:
+            # 接続条件を満たしていない場合　→　接続の報酬が　接続の最大報酬になっていない場合
+            if connect_num * 1.0 != round(connect_reward, 1):
                 for index, reward in enumerate(reward_channels):
                     # 接続報酬
                     if 0<=index<=3:

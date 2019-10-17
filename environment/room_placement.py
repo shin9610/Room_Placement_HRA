@@ -623,7 +623,7 @@ class RoomPlacement:
         # 報酬判定 reward: 報酬の合計，channels: 報酬のチャネル
         self.reward, self.reward_channels = self.reward_condition(now_agent)
         # 全体としての報酬を観測
-        self.reward_all_condition(now_agent)
+        # self.reward_all_condition(now_agent)
 
         self.step_id += 1
 
@@ -1234,7 +1234,7 @@ class RoomPlacement:
                     if your_list in neighbors:
                         head_reward[self.reward_name.index('connect' + str(n))] = self.reward_scheme['connect' + str(n)]
                     else:
-                        head_reward[self.reward_name.index('connect' + str(n))] = 0
+                        head_reward[self.reward_name.index('connect' + str(n))] = 0.0
             elif your_list == None:
                 head_reward[self.reward_name.index('connect' + str(n))] = None
 
