@@ -372,8 +372,14 @@ class ExperienceReplay(object):
         self.temp_D.extend(self.temp_rot_D)
 
     def s_r_shuffle(self, states, states_1, reward):
+        # 接続バッファが4
         state_t, state_t_1 = np.copy(states[1:5]), np.copy(states_1[1:5])
         reward_t = np.copy(reward[0:4])
+
+        # # 接続バッファが3
+        # state_t, state_t_1 = np.copy(states[1:4]), np.copy(states_1[1:4])
+        # reward_t = np.copy(reward[0:3])
+
 
         z = zip(state_t, reward_t, state_t_1)
         z_list = []
@@ -384,7 +390,11 @@ class ExperienceReplay(object):
         shuffled_list = random.sample(z_list, len(z_list))
         tupled_states, tupled_reward, tupled_states_1 = zip(*shuffled_list)
 
+        # 接続バッファが4
         states[1:5], reward[0:4], states_1[1:5] = tupled_states[0:4], tupled_reward[0:4], tupled_states_1[0:4]
+
+        # # 接続バッファが3
+        # states[1:4], reward[0:3], states_1[1:4] = tupled_states[0:3], tupled_reward[0:3], tupled_states_1[0:3]
 
         return states, states_1, reward
 
