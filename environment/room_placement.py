@@ -45,7 +45,7 @@ class RoomPlacement:
         # self.reward_scheme = {'connect': +1.0, 'shape': +1.0, 'area': +1.0}
         self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0,
                               'shape': +1.5, 'area': +1.0}
-        # self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'collision': -0.01,
+        # self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0, 'collision': -0.01,
         #                       'shape': +1.5, 'area': +1.0}
         # self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0}
         # self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0,
@@ -64,7 +64,7 @@ class RoomPlacement:
 
         # 室の初期設定
         if not test:
-            self.random_flag = False
+            self.random_flag = True
         else:
             self.random_flag = True
 
@@ -100,6 +100,7 @@ class RoomPlacement:
         #                    [7, None, None, None],
         #                    [6, None, None, None]]
         #
+        # バッファが4
         self.your_agent = [[1, None, None, None],
                            [0, 2, None, None],
                            [1, 3, None, None],
@@ -149,8 +150,8 @@ class RoomPlacement:
             self.state_t_1 = 0
 
         # 更新される環境
-        # input_channel
-        self.state_shape = [7, self.col, self.row]
+        self.state_shape = [7, self.col, self.row] # my, your0~3, other, site
+        # self.state_shape = [6, self.col, self.row] # my, your0~3, other, site
         self.state_channel_0 = self.state_channel(0, next_flag=False)
         self.next_state_channel_0 = self.state_channel(0, next_flag=True)
 
@@ -182,17 +183,18 @@ class RoomPlacement:
 
     # 敷地位置の初期化
     def init_site(self):
+
+        # 自動入力の場合
         init_site = copy.deepcopy(self.square_0)
 
-        # # 自動入力の場合
-        # for i in range(self.col):
-        #     # 上端と下端を外形とする
-        #     if i == 0 or i == self.col-1:
-        #         init_site[i][:] = -2
-        #     # 左右端を外形とする
-        #     else:
-        #         init_site[i][0] = -2
-        #         init_site[i][self.row-1] = -2
+        for i in range(self.col):
+            # 上端と下端を外形とする
+            if i == 0 or i == self.col-1:
+                init_site[i][:] = -2
+            # 左右端を外形とする
+            else:
+                init_site[i][0] = -2
+                init_site[i][self.row-1] = -2
         
         # # 手入力の場合
         # init_site = np.array(
@@ -225,36 +227,36 @@ class RoomPlacement:
         #      [-2, -2, -2, -2, -2, -2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -2],
         #      [-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2]])
 
-        # 手入力の場合
-        init_site = np.array(
-            [[-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2],
-             [-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2],
-             [-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2],
-             [-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2],
-             [-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2],
-             [-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2],
-             [-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2],
-             [-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2],
-             [-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2],
-             [-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2],
-             [-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2],
-             [-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2],
-             [-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2],
-             [-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2],
-             [-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2],
-             [-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2],
-             [-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2],
-             [-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2],
-             [-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2],
-             [-2, -2, -2, -2, -2, -2, -2, -2, -2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -2],
-             [-2, -2, -2, -2, -2, -2, -2, -2, -2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -2],
-             [-2, -2, -2, -2, -2, -2, -2, -2, -2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -2],
-             [-2, -2, -2, -2, -2, -2, -2, -2, -2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -2],
-             [-2, -2, -2, -2, -2, -2, -2, -2, -2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -2],
-             [-2, -2, -2, -2, -2, -2, -2, -2, -2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -2],
-             [-2, -2, -2, -2, -2, -2, -2, -2, -2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -2],
-             [-2, -2, -2, -2, -2, -2, -2, -2, -2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -2],
-             [-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2]])
+        # # 手入力の場合
+        # init_site = np.array(
+        #     [[-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2],
+        #      [-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2],
+        #      [-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2],
+        #      [-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2],
+        #      [-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2],
+        #      [-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2],
+        #      [-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2],
+        #      [-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2],
+        #      [-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2],
+        #      [-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2],
+        #      [-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2],
+        #      [-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2],
+        #      [-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2],
+        #      [-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2],
+        #      [-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2],
+        #      [-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2],
+        #      [-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2],
+        #      [-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2],
+        #      [-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2],
+        #      [-2, -2, -2, -2, -2, -2, -2, -2, -2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -2],
+        #      [-2, -2, -2, -2, -2, -2, -2, -2, -2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -2],
+        #      [-2, -2, -2, -2, -2, -2, -2, -2, -2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -2],
+        #      [-2, -2, -2, -2, -2, -2, -2, -2, -2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -2],
+        #      [-2, -2, -2, -2, -2, -2, -2, -2, -2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -2],
+        #      [-2, -2, -2, -2, -2, -2, -2, -2, -2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -2],
+        #      [-2, -2, -2, -2, -2, -2, -2, -2, -2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -2],
+        #      [-2, -2, -2, -2, -2, -2, -2, -2, -2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -2],
+        #      [-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2]])
 
         # # 手入力の場合
         # init_site = np.array(
@@ -496,6 +498,24 @@ class RoomPlacement:
                 elif i in your_agents:
                     temp_your0_arr = np.array(np.where(self.state_t == i)).T
                     temp_your0_list.extend(temp_your0_arr.tolist())
+                else:
+                    temp_other_arr = np.array(np.where(self.state_t == i)).T
+                    temp_other_list.extend(temp_other_arr.tolist())
+
+        elif self.state_shape[0]==6:
+            for i in range(self.n_agents):
+                if i == my_agent_num:
+                    temp_my_arr = np.array(np.where(self.state_t == i)).T
+                    temp_my_list = temp_my_arr.tolist()
+                elif i == your_agents[0]:
+                    temp_your0_arr = np.array(np.where(self.state_t == i)).T
+                    temp_your0_list = temp_your0_arr.tolist()
+                elif i == your_agents[1]:
+                    temp_your1_arr = np.array(np.where(self.state_t == i)).T
+                    temp_your1_list = temp_your1_arr.tolist()
+                elif i == your_agents[2]:
+                    temp_your2_arr = np.array(np.where(self.state_t == i)).T
+                    temp_your2_list = temp_your2_arr.tolist()
                 else:
                     temp_other_arr = np.array(np.where(self.state_t == i)).T
                     temp_other_list.extend(temp_other_arr.tolist())
@@ -1274,22 +1294,22 @@ class RoomPlacement:
 
         neighbors, _, _ = self.neighbor_search(now_agent)
 
-        # # 接続であれば，衝突判定を観測
-        # for n, your_list in enumerate(self.your_agent[now_agent]):
-        #     # 接続に単数ヘッド
-        #     if 'connect' in self.reward_name:
-        #         if your_list in neighbors:
-        #             head_reward[self.reward_name.index('connect')] += self.reward_scheme['connect']
-        #     # 接続に複数ヘッドあり
-        #     elif 'connect' not in self.reward_name:
-        #         if your_list in neighbors:
-        #             if not self.limit_flag:
-        #                 head_reward[self.reward_name.index('connect' + str(n))] = self.reward_scheme['connect' + str(n)]
-        #             else:
-        #                 head_reward[self.reward_name.index('connect' + str(n))] = -0.1
-        #
-        #         elif your_list == None:
-        #             head_reward[self.reward_name.index('connect' + str(n))] = None
+        # 接続であれば，衝突判定を観測
+        for n, your_list in enumerate(self.your_agent[now_agent]):
+            # 接続に単数ヘッド
+            if 'connect' in self.reward_name:
+                if your_list in neighbors:
+                    head_reward[self.reward_name.index('connect')] += self.reward_scheme['connect']
+            # 接続に複数ヘッドあり
+            elif 'connect' not in self.reward_name:
+                if your_list in neighbors:
+                    if not self.limit_flag:
+                        head_reward[self.reward_name.index('connect' + str(n))] = self.reward_scheme['connect' + str(n)]
+                    else:
+                        head_reward[self.reward_name.index('connect' + str(n))] = -0.1
+
+                elif your_list == None:
+                    head_reward[self.reward_name.index('connect' + str(n))] = None
 
 
         # # 接続に関わらず衝突判定を観測
@@ -1308,21 +1328,21 @@ class RoomPlacement:
         #         head_reward[self.reward_name.index('connect' + str(n))] = None
 
 
-        # 接続に関わらず衝突判定を観測
-        for n, your_list in enumerate(self.your_agent[now_agent]):
-            if your_list != None:
-                if self.limit_flag:
-                    if your_list in neighbors:
-                        head_reward[self.reward_name.index('connect' + str(n))] = -0.1 # yourとの衝突
-                    else:
-                        head_reward[self.reward_name.index('connect' + str(n))] = -0.01 # other, siteとの衝突
-                else:
-                    if your_list in neighbors:
-                        head_reward[self.reward_name.index('connect' + str(n))] = self.reward_scheme['connect' + str(n)]
-                    else:
-                        head_reward[self.reward_name.index('connect' + str(n))] = 0.0
-            elif your_list == None:
-                head_reward[self.reward_name.index('connect' + str(n))] = None
+        # # 接続に関わらず衝突判定を観測 other, siteの場合は-0.01
+        # for n, your_list in enumerate(self.your_agent[now_agent]):
+        #     if your_list != None:
+        #         if self.limit_flag:
+        #             if your_list in neighbors:
+        #                 head_reward[self.reward_name.index('connect' + str(n))] = -0.1 # yourとの衝突
+        #             else:
+        #                 head_reward[self.reward_name.index('connect' + str(n))] = -0.01 # other, siteとの衝突
+        #         else:
+        #             if your_list in neighbors:
+        #                 head_reward[self.reward_name.index('connect' + str(n))] = self.reward_scheme['connect' + str(n)]
+        #             else:
+        #                 head_reward[self.reward_name.index('connect' + str(n))] = 0.0
+        #     elif your_list == None:
+        #         head_reward[self.reward_name.index('connect' + str(n))] = None
 
 
         # アスペクト比報酬を判定
