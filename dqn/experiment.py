@@ -22,6 +22,7 @@ class DQNExperiment(object):
         self.eval_steps = []
         self.eval_scores = []
         self.eval_scores_connect = []
+        self.eval_scores_collision = []
         self.eval_scores_shape = []
         self.eval_scores_area = []
         self.eval_scores_effective_len = []
@@ -53,7 +54,7 @@ class DQNExperiment(object):
         self.episode_num += 1
         print(Font.cyan + Font.bold + 'Testing ... '  + Font.end, end='\n')
         for i in range(total_test_eps):
-            test_scores, test_scores_connect, test_scores_shape, test_scores_area,test_scores_eff_len, _, _, _, _, _ = \
+            test_scores, test_scores_connect, test_scores_connect, test_scores_shape, test_scores_area,test_scores_eff_len, _, _, _, _, _ = \
                 self.do_episodes(number=eps_per_test, is_learning=False)
             print('Test_Score: ' + str(test_scores) + '\n')
             print('connect/shape/area: ' + str(test_scores_connect) + '/' + str(test_scores_shape) + '/' + str(test_scores_area))
@@ -66,18 +67,19 @@ class DQNExperiment(object):
         while self.episode_num < total_eps:
             print(Font.yellow + Font.bold + 'Training ... ' + str(self.episode_num) + '/' + str(total_eps) + Font.end,
                   end='\n')
-            _, _, _, _, _, costs, elapsed_times, learn_times ,env_times, get_action_times = self.do_episodes(number=eps_per_epoch, is_learning=is_learning)
+            _, _, _, _, _, _, costs, elapsed_times, learn_times ,env_times, get_action_times = self.do_episodes(number=eps_per_epoch, is_learning=is_learning)
             # self.do_episodes(number=eps_per_epoch, is_learning=is_learning)
             # graph(self.episode_num, scores, self.draw_graph_freq)
 
             if is_testing:
                 print('-----testing-----')
                 print('epsilon: ' + str(self.ai.epsilon))
-                eval_scores, eval_scores_connect, eval_scores_shape, eval_scores_area, eval_scores_effective_len\
+                eval_scores, eval_scores_connect, eval_scores_collision, eval_scores_shape, eval_scores_area, eval_scores_effective_len\
                     , _, _, _, _, _ = self.do_episodes(number=eps_per_test, is_learning=False)
 
                 self.eval_scores.append(eval_scores)
                 self.eval_scores_connect.append(eval_scores_connect)
+                self.eval_scores_collision.append(eval_scores_collision)
                 self.eval_scores_shape.append(eval_scores_shape)
                 self.eval_scores_area.append(eval_scores_area)
                 self.eval_scores_effective_len.append(eval_scores_effective_len)
@@ -102,7 +104,7 @@ class DQNExperiment(object):
                 # connect, shape, area, eff_len の全てをグラフで吐き出すとき．
                 plot_and_write(plot_dict={'scores': self.eval_scores, 'scores_connect': self.eval_scores_connect,
                                           'scores_shape': self.eval_scores_shape, 'scores_area': self.eval_scores_area,
-                                          'scores_effective_len': self.eval_scores_effective_len},
+                                          'scores_collision': self.eval_scores_collision},
                                loc=self.folder_name + "/scores",
                                x_label="Episodes", y_label="Scores", title="", kind='line', legend=True)
 
@@ -162,6 +164,7 @@ class DQNExperiment(object):
         scores_shape = []
         scores_area = []
         scores_effective_len = []
+        scores_collision = []
 
         # costs
         costs = []
@@ -178,10 +181,11 @@ class DQNExperiment(object):
             get_action_times.append(get_action_time_channels)
             scores.append(self.score)
             # 接続報酬の0~3までの合計(nanを除く)
-            # scores_connect.append(sum([i for i in self.score_channel[0:4] if not np.isnan(i)]))
-            scores_connect.append(self.score_channel[0])
-            scores_shape.append(self.score_channel[1])
-            scores_area.append(self.score_channel[2])
+            scores_connect.append(sum([i for i in self.score_channel[0:4] if not np.isnan(i)]))
+            # scores_connect.append(self.score_channel[0])
+            scores_collision.append(self.score_channel[4])
+            scores_shape.append(self.score_channel[5])
+            scores_area.append(self.score_channel[6])
             # scores_effective_len.append(self.score_channel[5])
 
             steps.append(self.last_episode_steps)
@@ -200,7 +204,7 @@ class DQNExperiment(object):
                 # episode_numを足す
                 self.episode_num += 1
 
-        return np.mean(scores), np.mean(scores_connect), np.mean(scores_shape), np.mean(scores_area), \
+        return np.mean(scores), np.mean(scores_connect), np.mean(scores_collision), np.mean(scores_shape), np.mean(scores_area), \
                np.mean(scores_effective_len), np.mean(costs, axis=0), np.mean(times), np.mean(learn_times), \
                np.mean(env_times, axis=0), np.mean(get_action_times, axis=0)
 

@@ -264,7 +264,7 @@ class AI:
     def aggregator(self, reward_channels):
 
         if self.is_aggregator:
-            # 接続報酬のインデックス connect0~3 or connect0~2 collision
+            # 接続報酬のインデックス
             connect_heads = reward_channels[0:4]
 
             connect_num = sum(1 for i in connect_heads if not np.isnan(i))
@@ -281,6 +281,9 @@ class AI:
                             self.agg_w[index][0][0] = 5
                         elif np.isnan(reward):
                             self.agg_w[index][0][0] = 0.1
+                    # 衝突報酬
+                    elif index == 4:
+                        self.agg_w[index][0][0] = 5
                     # 面積，形状報酬，有効寸法
                     else:
                         self.agg_w[index][0][0] = 1
@@ -296,6 +299,9 @@ class AI:
                             self.agg_w[index][0][0] = 1
                         elif np.isnan(reward):
                             self.agg_w[index][0][0] = 0.1
+                    # 衝突報酬
+                    elif index == 4:
+                        self.agg_w[index][0][0] = 1
                     # 面積，形状報酬，有効寸法
                     else:
                         self.agg_w[index][0][0] = 5

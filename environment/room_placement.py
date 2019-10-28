@@ -43,10 +43,10 @@ class RoomPlacement:
         # 報酬と終了条件の初期化
         self.reward = 0
         # self.reward_scheme = {'connect': +1.0, 'shape': +1.0, 'area': +1.0}
-        self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0,
-                              'shape': +1.5, 'area': +1.0}
-        # self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0, 'collision': -0.01,
+        # self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0,
         #                       'shape': +1.5, 'area': +1.0}
+        self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0, 'collision': -0.01,
+                              'shape': +1.5, 'area': +1.0}
         # self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0}
         # self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0,
         #                       'area': +1.0}
@@ -1310,7 +1310,6 @@ class RoomPlacement:
                 elif your_list == None:
                     head_reward[self.reward_name.index('connect' + str(n))] = None
 
-
         # # 接続に関わらず衝突判定を観測
         # for n, your_list in enumerate(self.your_agent[now_agent]):
         #     if your_list != None:
@@ -1345,6 +1344,11 @@ class RoomPlacement:
 
 
         # アスペクト比報酬を判定
+
+        if 'collision' in self.reward_name:
+            if self.limit_flag:
+                head_reward[self.reward_name.index('collision')] = self.reward_scheme['collision']
+
         if 'shape' in self.reward_name:
             aspect, _, _ = self.aspect_search(now_agent)
             if aspect >= 0.5:
