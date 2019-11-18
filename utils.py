@@ -94,7 +94,7 @@ def plot(data={}, loc="visualization.pdf", x_label="", y_label="", title="", kin
         #         smoothed_data[key] = data[key]
         #     data = smoothed_data
     df = pd.DataFrame(data=data)
-    ax = df.plot(kind=kind, legend=legend, ylim=clip, linewidth=0.5)
+    ax = df.plot(kind=kind, legend=legend, ylim=clip, linewidth=0.5, alpha=0.2)
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
     ax.set_title(title)
@@ -120,7 +120,7 @@ def plot_and_write(plot_dict, loc, x_label="", y_label="", title="", kind='line'
     plot(data=plot_dict, loc=loc + ".pdf", x_label=x_label, y_label=y_label, title=title,
          kind=kind, legend=legend, index_col=None, moving_average=moving_average)
 
-
+    write_to_csv(data=plot_dict, loc=loc + ".csv")
 
 def compute_ave(score, temp_scores, ave_score, episode, div=20):
     if episode % div == 0 and episode != 0:

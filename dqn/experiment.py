@@ -20,6 +20,7 @@ class DQNExperiment(object):
         self.ave_score = 0
         self.score_channel = np.zeros(env.reward_len)
         self.eval_steps = []
+        self.eval_eps = []
         self.eval_scores = []
         self.eval_scores_connect = []
         self.eval_scores_collision = []
@@ -77,6 +78,7 @@ class DQNExperiment(object):
                 eval_scores, eval_scores_connect, eval_scores_collision, eval_scores_shape, eval_scores_area, eval_scores_effective_len\
                     , _, _, _, _, _ = self.do_episodes(number=eps_per_test, is_learning=False)
 
+                self.eval_eps.append(self.episode_num)
                 self.eval_scores.append(eval_scores)
                 self.eval_scores_connect.append(eval_scores_connect)
                 self.eval_scores_collision.append(eval_scores_collision)
@@ -102,7 +104,7 @@ class DQNExperiment(object):
                 #                x_label="Episodes", y_label="Scores", title="", kind='line', legend=True)
 
                 # connect, shape, area, eff_len の全てをグラフで吐き出すとき．
-                plot_and_write(plot_dict={'scores': self.eval_scores, 'scores_connect': self.eval_scores_connect,
+                plot_and_write(plot_dict={'episode': self.eval_eps, 'scores': self.eval_scores, 'scores_connect': self.eval_scores_connect,
                                           'scores_shape': self.eval_scores_shape, 'scores_area': self.eval_scores_area,
                                           'scores_collision': self.eval_scores_collision},
                                loc=self.folder_name + "/scores",
