@@ -264,47 +264,60 @@ class AI:
     def aggregator(self, reward_channels):
 
         if self.is_aggregator:
-            # 接続報酬のインデックス
-            connect_heads = reward_channels[0:4]
+            # 単数接続用のagg
+            if self.state_shape[0] == 4:
+                if reward_channels[0] < 1.0:
+                    self.agg_w[0][0][0] = 5 # connect
+                    self.agg_w[1][0][0] = 1 # shape
+                    self.agg_w[2][0][0] = 1 # area
+                else:
+                    self.agg_w[0][0][0] = 1
+                    self.agg_w[1][0][0] = 5
+                    self.agg_w[2][0][0] = 5
 
-            connect_num = sum(1 for i in connect_heads if not np.isnan(i))
-            connect_reward = sum(i for i in connect_heads if not np.isnan(i))
+            # 複数接続用のagg
+            elif self.state_shape[0] == 7:
+                # 接続報酬のインデックス
+                connect_heads = reward_channels[0:4]
 
-            # 接続条件を満たしていない場合　→　接続の報酬が　接続の最大報酬になっていない場合
-            if connect_num * 1.0 != round(connect_reward, 1):
-                for index, reward in enumerate(reward_channels):
-                    # 接続報酬
-                    if 0<=index<=3:
-                        if reward == 1.0:
-                            self.agg_w[index][0][0] = 1
-                        elif reward <= 0.0:
+                connect_num = sum(1 for i in connect_heads if not np.isnan(i))
+                connect_reward = sum(i for i in connect_heads if not np.isnan(i))
+
+                # 接続条件を満たしていない場合　→　接続の報酬が　接続の最大報酬になっていない場合
+                if connect_num * 1.0 != round(connect_reward, 1):
+                    for index, reward in enumerate(reward_channels):
+                        # 接続報酬
+                        if 0<=index<=3:
+                            if reward == 1.0:
+                                self.agg_w[index][0][0] = 1
+                            elif reward <= 0.0:
+                                self.agg_w[index][0][0] = 5
+                            elif np.isnan(reward):
+                                self.agg_w[index][0][0] = 0.1
+                        # 衝突報酬
+                        elif index == 4:
                             self.agg_w[index][0][0] = 5
-                        elif np.isnan(reward):
-                            self.agg_w[index][0][0] = 0.1
-                    # 衝突報酬
-                    elif index == 4:
-                        self.agg_w[index][0][0] = 5
-                    # 面積，形状報酬，有効寸法
-                    else:
-                        self.agg_w[index][0][0] = 1
+                        # 面積，形状報酬，有効寸法
+                        else:
+                            self.agg_w[index][0][0] = 1
 
-            # 接続条件を満たしている場合
-            else:
-                for index, reward in enumerate(reward_channels):
-                    # 接続報酬
-                    if 0<=index<=3:
-                        if reward == 1.0:
+                # 接続条件を満たしている場合
+                else:
+                    for index, reward in enumerate(reward_channels):
+                        # 接続報酬
+                        if 0<=index<=3:
+                            if reward == 1.0:
+                                self.agg_w[index][0][0] = 1
+                            elif reward <= 0.0:
+                                self.agg_w[index][0][0] = 1
+                            elif np.isnan(reward):
+                                self.agg_w[index][0][0] = 0.1
+                        # 衝突報酬
+                        elif index == 4:
                             self.agg_w[index][0][0] = 1
-                        elif reward <= 0.0:
-                            self.agg_w[index][0][0] = 1
-                        elif np.isnan(reward):
-                            self.agg_w[index][0][0] = 0.1
-                    # 衝突報酬
-                    elif index == 4:
-                        self.agg_w[index][0][0] = 1
-                    # 面積，形状報酬，有効寸法
-                    else:
-                        self.agg_w[index][0][0] = 5
+                        # 面積，形状報酬，有効寸法
+                        else:
+                            self.agg_w[index][0][0] = 5
 
         else:
             raise ValueError("not use aggregator")

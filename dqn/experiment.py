@@ -182,12 +182,16 @@ class DQNExperiment(object):
             env_times.append(time_channels)
             get_action_times.append(get_action_time_channels)
             scores.append(self.score)
+
+            scores_connect.append(self.score_channel[0])
+            scores_shape.append(self.score_channel[1])
+            scores_area.append(self.score_channel[2])
+
             # 接続報酬の0~3までの合計(nanを除く)
-            scores_connect.append(sum([i for i in self.score_channel[0:4] if not np.isnan(i)]))
-            # scores_connect.append(self.score_channel[0])
-            scores_collision.append(self.score_channel[4])
-            scores_shape.append(self.score_channel[5])
-            scores_area.append(self.score_channel[6])
+            # scores_connect.append(sum([i for i in self.score_channel[0:4] if not np.isnan(i)]))
+            # scores_collision.append(self.score_channel[4])
+            # scores_shape.append(self.score_channel[5])
+            # scores_area.append(self.score_channel[6])
             # scores_effective_len.append(self.score_channel[5])
 
             steps.append(self.last_episode_steps)
