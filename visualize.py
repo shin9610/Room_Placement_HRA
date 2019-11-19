@@ -7,7 +7,7 @@ import numpy as np
 import copy
 
 # color_schemes = {'scores': 'dodgerblue', 'scores_connect' : 'dodgerblue', 'scores_shape' : 'yellowgreen', 'scores_area' : 'tomato', 'scores_collision' : 'khaki'}
-color_schemes = {'scores': 'darkorange', 'scores_connect' : 'dimgrey', 'scores_shape' : 'dimgrey', 'scores_area' : 'dimgrey', 'scores_collision' : 'dimgrey'}
+color_schemes = {'scores': 'darkorange', 'scores_connect' : 'dodgerblue', 'scores_shape' : 'dimgrey', 'scores_area' : 'dimgrey', 'scores_collision' : 'dimgrey'}
 x_label = 'Episode'
 y_label = 'Score'
 
@@ -44,7 +44,7 @@ def draw_line_graph_from_list(file_name, save_name):
                 scores_all = csv_list_T[header.index(str)]
                 scores_ave = []
                 scores_ave_eps = []
-                n_ave = 15
+                n_ave = 10
                 for i in range(len(scores_all) // n_ave):
                     # scores_ave.extend(sum(scores_all[i*n_ave:i*n_ave+n_ave]))
                     score_ave = sum(scores_all[i * n_ave:i * n_ave + n_ave]) / n_ave
@@ -59,7 +59,7 @@ def draw_line_graph_from_list(file_name, save_name):
                 scores_all = csv_list_T[header.index(str)]
                 scores_ave = []
                 scores_ave_eps = []
-                n_ave = 15
+                n_ave = 10
                 for i in range(len(scores_all) // n_ave):
                     # scores_ave.extend(sum(scores_all[i*n_ave:i*n_ave+n_ave]))
                     score_ave = sum(scores_all[i * n_ave:i * n_ave + n_ave]) / n_ave

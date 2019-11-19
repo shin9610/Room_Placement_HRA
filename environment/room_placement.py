@@ -77,7 +77,7 @@ class RoomPlacement:
 
 
         # 室の報酬条件
-        self.your_agent = [1, 0, 3, 2]
+        # self.your_agent = [1, 0, 3, 2]
         self.your_agent = [[1], [0], [3], [2]]
         self.your_agent_max = 4
         # self.your_agent = [1, 0, 3, 2, 5, 4, 7, 6]
@@ -1269,7 +1269,7 @@ class RoomPlacement:
 
         head_reward = np.zeros(len(self.reward_scheme), dtype=np.float32)
 
-        # 接続報酬を判定
+        # # 単室接続時の報酬
         # if self.your_agent[now_agent] in self.neighbor_search(now_agent):
         #     head_reward[0] = self.reward_scheme['connect']
         #
@@ -1287,23 +1287,17 @@ class RoomPlacement:
         # else:
         #     pass
 
-        # 接続報酬を判定
-        # print(self.your_agent[now_agent])
-        # print(self.neighbor_search(now_agent))
-
-        # if self.your_agent[now_agent] in self.neighbor_search(now_agent):
-        #     head_reward[0] = self.reward_scheme['connect']
-
-        # この与え方だと接続に対して一律に観測する．　→　headを作成した方が適切？
 
         neighbors, _, _ = self.neighbor_search(now_agent)
 
         # 接続であれば，衝突判定を観測
         for n, your_list in enumerate(self.your_agent[now_agent]):
+
             # 接続に単数ヘッド
             if 'connect' in self.reward_name:
                 if your_list in neighbors:
                     head_reward[self.reward_name.index('connect')] += self.reward_scheme['connect']
+
             # 接続に複数ヘッドあり
             elif 'connect' not in self.reward_name:
                 if your_list in neighbors:
@@ -1349,9 +1343,11 @@ class RoomPlacement:
 
 
         # 衝突報酬を判定
-        if 'collision' in self.reward_name:
-            if self.limit_flag:
-                head_reward[self.reward_name.index('collision')] = self.reward_scheme['collision']
+        # if 'collision' in self.reward_name:
+        #     if self.limit_flag:
+        #         head_reward[self.reward_name.index('collision')] = self.reward_scheme['collision']
+
+
 
         # # アスペクト比報酬を判定
         # if 'shape' in self.reward_name:
@@ -1362,6 +1358,8 @@ class RoomPlacement:
         #         head_reward[self.reward_name.index('shape')] = self.reward_scheme['shape']-0.5
         #     if aspect >= 0.9:
         #         head_reward[self.reward_name.index('shape')] = self.reward_scheme['shape']
+
+
 
         # アスペクト比報酬を判定
         if 'shape' in self.reward_name:
@@ -1374,7 +1372,6 @@ class RoomPlacement:
             if self.room_downer <= self.area_search(now_agent) <= self.room_upper:
                 head_reward[self.reward_name.index('area')] = self.reward_scheme['area']
 
-        # スタックを判定
 
         # # 有効寸法を判定
         # if self.effective_len_search(now_agent):
