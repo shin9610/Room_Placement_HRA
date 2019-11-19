@@ -70,7 +70,7 @@ class RoomPlacement:
 
         self.init_random_iter = 30
         self.evely_random_flag = False
-        self.n_agents = 4
+        self.n_agents = 8
         self.room_col = 3
         self.room_row = 3
         self.room_size = self.room_col * self.room_row
@@ -78,9 +78,10 @@ class RoomPlacement:
 
         # 室の報酬条件
         # self.your_agent = [1, 0, 3, 2]
-        self.your_agent = [[1], [0], [3], [2]]
+        # self.your_agent = [[1], [0], [3], [2]]
         self.your_agent_max = 4
         # self.your_agent = [1, 0, 3, 2, 5, 4, 7, 6]
+        self.your_agent = [[1], [0], [3], [2], [5], [4], [7], [6]]
         # self.your_agent = [1, 0, 0, 0, 0, 0, 0, 0]
 
         # self.your_agent = [[1, None, None, None],
