@@ -42,7 +42,9 @@ class RoomPlacement:
 
         # 報酬と終了条件の初期化
         self.reward = 0
-        self.reward_scheme = {'connect': +1.0, 'shape': +1.0, 'area': +1.0}
+        # self.reward_scheme = {'connect': +1.0, 'shape': +1.0, 'area': +1.0}
+        self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0,
+                              'shape': +1.0, 'area': +1.0}
         # self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0,
         #                       'shape': +1.5, 'area': +1.0}
         # self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0, 'collision': -0.01,
@@ -70,7 +72,7 @@ class RoomPlacement:
 
         self.init_random_iter = 30
         self.evely_random_flag = False
-        self.n_agents = 8
+        self.n_agents = 4
         self.room_col = 3
         self.room_row = 3
         self.room_size = self.room_col * self.room_row
@@ -81,7 +83,7 @@ class RoomPlacement:
         # self.your_agent = [[1], [0], [3], [2]]
         self.your_agent_max = 4
         # self.your_agent = [1, 0, 3, 2, 5, 4, 7, 6]
-        self.your_agent = [[1], [0], [3], [2], [5], [4], [7], [6]]
+        # self.your_agent = [[1], [0], [3], [2], [5], [4], [7], [6]]
         # self.your_agent = [1, 0, 0, 0, 0, 0, 0, 0]
 
         # self.your_agent = [[1, None, None, None],
@@ -112,10 +114,10 @@ class RoomPlacement:
         #                    [4, None, None, None],
         #                    [5, None, None, None]]
 
-        # self.your_agent = [[1, 3, None, None],
-        #                    [0, 2, None, None],
-        #                    [1, 3, None, None],
-        #                    [0, 2, None, None]]
+        self.your_agent = [[1, 3, None, None],
+                           [0, 2, None, None],
+                           [1, 3, None, None],
+                           [0, 2, None, None]]
 
         # self.your_agent = [[1, None, None, None],
         #                    [0, None, None, None],
@@ -152,8 +154,8 @@ class RoomPlacement:
             self.state_t_1 = 0
 
         # 更新される環境
-        self.state_shape = [4, self.col, self.row] # my, your, other, site
-        # self.state_shape = [7, self.col, self.row] # my, your0~3, other, site
+        # self.state_shape = [4, self.col, self.row] # my, your, other, site
+        self.state_shape = [7, self.col, self.row] # my, your0~3, other, site
         # self.state_shape = [6, self.col, self.row] # my, your0~3, other, site
         self.state_channel_0 = self.state_channel(0, next_flag=False)
         self.next_state_channel_0 = self.state_channel(0, next_flag=True)
@@ -1305,7 +1307,8 @@ class RoomPlacement:
                     if not self.limit_flag:
                         head_reward[self.reward_name.index('connect' + str(n))] = self.reward_scheme['connect' + str(n)]
                     else:
-                        head_reward[self.reward_name.index('connect' + str(n))] = -0.1
+                        # head_reward[self.reward_name.index('connect' + str(n))] = -0.1
+                        head_reward[self.reward_name.index('connect' + str(n))] = self.reward_scheme['connect' + str(n)]
 
                 elif your_list == None:
                     head_reward[self.reward_name.index('connect' + str(n))] = None
@@ -1350,7 +1353,7 @@ class RoomPlacement:
 
 
 
-        # # アスペクト比報酬を判定
+        # # アスペクト比報酬を判定(段階的に)
         # if 'shape' in self.reward_name:
         #     aspect, _, _ = self.aspect_search(now_agent)
         #     if aspect >= 0.5:
@@ -1362,7 +1365,7 @@ class RoomPlacement:
 
 
 
-        # アスペクト比報酬を判定
+        # アスペクト比報酬を判定(0.8を基準に)
         if 'shape' in self.reward_name:
             aspect, _, _ = self.aspect_search(now_agent)
             if aspect >= 0.8:

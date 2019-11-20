@@ -288,15 +288,17 @@ class AI:
                     for index, reward in enumerate(reward_channels):
                         # 接続報酬
                         if 0<=index<=3:
-                            if reward == 1.0:
+                            if reward == 1.0: # 接続している
                                 self.agg_w[index][0][0] = 1
-                            elif reward <= 0.0:
+                            elif reward <= 0.0: # 接続していない　もしくは　衝突
                                 self.agg_w[index][0][0] = 5
-                            elif np.isnan(reward):
+                            elif np.isnan(reward): # 接続相手がない
                                 self.agg_w[index][0][0] = 0.1
-                        # 衝突報酬
-                        elif index == 4:
-                            self.agg_w[index][0][0] = 5
+
+                        # # 衝突報酬
+                        # elif index == 4:
+                        #     self.agg_w[index][0][0] = 5
+
                         # 面積，形状報酬，有効寸法
                         else:
                             self.agg_w[index][0][0] = 1
@@ -306,15 +308,17 @@ class AI:
                     for index, reward in enumerate(reward_channels):
                         # 接続報酬
                         if 0<=index<=3:
-                            if reward == 1.0:
+                            if reward == 1.0: # 接続している
                                 self.agg_w[index][0][0] = 1
-                            elif reward <= 0.0:
+                            elif reward <= 0.0: # 接続していない　もしくは　衝突
                                 self.agg_w[index][0][0] = 1
-                            elif np.isnan(reward):
+                            elif np.isnan(reward): # 接続相手がない
                                 self.agg_w[index][0][0] = 0.1
-                        # 衝突報酬
-                        elif index == 4:
-                            self.agg_w[index][0][0] = 1
+
+                        # # 衝突報酬
+                        # elif index == 4:
+                        #     self.agg_w[index][0][0] = 1
+
                         # 面積，形状報酬，有効寸法
                         else:
                             self.agg_w[index][0][0] = 5

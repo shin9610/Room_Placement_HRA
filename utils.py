@@ -263,18 +263,18 @@ class ExperienceReplay(object):
             self.size += 1
 
     def store_temp_exp(self, states, action, reward, states_1, terminal):
-        # #stateとhead_rewardを揃えたままシャッフルしてstore
-        # shuffle_states, shuffle_states_1, shuffle_reward = self.s_r_shuffle(states, states_1, reward)
-        #
-        # # # nanの箇所を0で入力
-        # for num, r in enumerate(shuffle_reward):
-        #     if np.isnan(r):
-        #         shuffle_reward[num] = 0.
-        #
-        # self.temp_D.append((shuffle_states, action, shuffle_reward, shuffle_states_1, terminal))
+        #stateとhead_rewardを揃えたままシャッフルしてstore
+        shuffle_states, shuffle_states_1, shuffle_reward = self.s_r_shuffle(states, states_1, reward)
+
+        # # nanの箇所を0で入力
+        for num, r in enumerate(shuffle_reward):
+            if np.isnan(r):
+                shuffle_reward[num] = 0.
+
+        self.temp_D.append((shuffle_states, action, shuffle_reward, shuffle_states_1, terminal))
 
 
-        self.temp_D.append((states, action, reward, states_1, terminal))
+        # self.temp_D.append((states, action, reward, states_1, terminal))
         # print(np.array(states, action, reward, states_1, terminal))
         # self.temp_D.append(np.array(states, action, reward, states_1, terminal))
 
