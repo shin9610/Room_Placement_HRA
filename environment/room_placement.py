@@ -1313,18 +1313,18 @@ class RoomPlacement:
             if your_list in neighbors:
                 head_reward[self.reward_name.index('connect')] += self.reward_scheme['connect']
 
-                # アスペクト比報酬を判定
-                if 'shape' in self.reward_name:
-                    aspect, _, _ = self.aspect_search(now_agent)
-                    if aspect >= 0.8:
-                        head_reward[self.reward_name.index('shape')] = self.reward_scheme['shape']
-                    else:
-                        pass
-
                 # 面積報酬を判定
                 if 'area' in self.reward_name:
                     if self.room_downer <= self.area_search(now_agent) <= self.room_upper:
                         head_reward[self.reward_name.index('area')] = self.reward_scheme['area']
+
+                        # アスペクト比報酬を判定
+                        if 'shape' in self.reward_name:
+                            aspect, _, _ = self.aspect_search(now_agent)
+                            if aspect >= 0.8:
+                                head_reward[self.reward_name.index('shape')] = self.reward_scheme['shape']
+                            else:
+                                pass
                     else:
                         pass
             else:
