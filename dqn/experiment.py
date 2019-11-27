@@ -288,8 +288,7 @@ class DQNExperiment(object):
                 if not evaluate:
                     start = time.time()
                     self.ai.transitions.store_temp_exp(np.array((state_t)), action, reward_channels, np.array((state_t_1)), term)
-                    if reward_channels[0] >= 2.0:
-                        print(reward_channels)
+
 
                     # # TD誤差の計算，格納
                     # TDerror = self.ai.get_TDerror()

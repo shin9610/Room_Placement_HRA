@@ -80,7 +80,7 @@ class RoomPlacement:
 
         # 室の報酬条件
         # self.your_agent = [1, 0, 3, 2]
-        self.your_agent = [[1], [0], [3], [2]]
+        # self.your_agent = [[1], [0], [3], [2]]
         self.your_agent_max = 4
         # self.your_agent = [1, 0, 3, 2, 5, 4, 7, 6]
         # self.your_agent = [[1], [0], [3], [2], [5], [4], [7], [6]]
@@ -114,10 +114,10 @@ class RoomPlacement:
         #                    [4, None, None, None],
         #                    [5, None, None, None]]
 
-        # self.your_agent = [[1, 3, None, None],
-        #                    [0, 2, None, None],
-        #                    [1, 3, None, None],
-        #                    [0, 2, None, None]]
+        self.your_agent = [[1, 3, None, None],
+                           [0, 2, None, None],
+                           [1, 3, None, None],
+                           [0, 2, None, None]]
 
         # self.your_agent = [[1, None, None, None],
         #                    [0, None, None, None],
@@ -154,8 +154,8 @@ class RoomPlacement:
             self.state_t_1 = 0
 
         # 更新される環境
-        # self.state_shape = [4, self.col, self.row] # my, your, other, site
-        self.state_shape = [7, self.col, self.row] # my, your0~3, other, site
+        self.state_shape = [4, self.col, self.row] # my, your, other, site
+        # self.state_shape = [7, self.col, self.row] # my, your0~3, other, site
         # self.state_shape = [6, self.col, self.row] # my, your0~3, other, site
         self.state_channel_0 = self.state_channel(0, next_flag=False)
         self.next_state_channel_0 = self.state_channel(0, next_flag=True)
