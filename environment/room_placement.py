@@ -42,7 +42,7 @@ class RoomPlacement:
 
         # 報酬と終了条件の初期化
         self.reward = 0
-        self.reward_scheme = {'connect': +1.0, 'shape': +1.0, 'area': +1.0}
+        self.reward_scheme = {'connect': +1.0, 'shape': +0.1, 'area': +0.1}
         # self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0,
         #                       'shape': +1.0, 'area': +1.0}
         # self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0,
@@ -1318,15 +1318,15 @@ class RoomPlacement:
                     if self.room_downer <= self.area_search(now_agent) <= self.room_upper:
                         head_reward[self.reward_name.index('area')] = self.reward_scheme['area']
 
-                        # アスペクト比報酬を判定
-                        if 'shape' in self.reward_name:
-                            aspect, _, _ = self.aspect_search(now_agent)
-                            if aspect >= 0.8:
-                                head_reward[self.reward_name.index('shape')] = self.reward_scheme['shape']
-                            else:
-                                pass
+                # アスペクト比報酬を判定
+                if 'shape' in self.reward_name:
+                    aspect, _, _ = self.aspect_search(now_agent)
+                    if aspect >= 0.8:
+                        head_reward[self.reward_name.index('shape')] = self.reward_scheme['shape']
                     else:
                         pass
+                else:
+                    pass
             else:
                 pass
 
