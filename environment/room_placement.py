@@ -42,9 +42,9 @@ class RoomPlacement:
 
         # 報酬と終了条件の初期化
         self.reward = 0
-        self.reward_scheme = {'connect': +1.0, 'shape': +1.0, 'area': +1.0}
-        # self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0,
-        #                       'shape': +1.0, 'area': +1.0}
+        # self.reward_scheme = {'connect': +1.0, 'shape': +1.0, 'area': +1.0}
+        self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0,
+                              'shape': +1.0, 'area': +1.0}
         # self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0,
         #                       'shape': +1.5, 'area': +1.0}
         # self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0, 'collision': -0.01,
