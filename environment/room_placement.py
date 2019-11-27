@@ -42,9 +42,9 @@ class RoomPlacement:
 
         # 報酬と終了条件の初期化
         self.reward = 0
-        # self.reward_scheme = {'connect': +1.0, 'shape': +1.0, 'area': +1.0}
-        self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0,
-                              'shape': +1.0, 'area': +1.0}
+        self.reward_scheme = {'connect': +1.0, 'shape': +1.0, 'area': +1.0}
+        # self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0,
+        #                       'shape': +1.0, 'area': +1.0}
         # self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0,
         #                       'shape': +1.5, 'area': +1.0}
         # self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0, 'collision': -0.01,
@@ -80,7 +80,7 @@ class RoomPlacement:
 
         # 室の報酬条件
         # self.your_agent = [1, 0, 3, 2]
-        # self.your_agent = [[1], [0], [3], [2]]
+        self.your_agent = [[1], [0], [3], [2]]
         self.your_agent_max = 4
         # self.your_agent = [1, 0, 3, 2, 5, 4, 7, 6]
         # self.your_agent = [[1], [0], [3], [2], [5], [4], [7], [6]]
@@ -114,10 +114,10 @@ class RoomPlacement:
         #                    [4, None, None, None],
         #                    [5, None, None, None]]
 
-        self.your_agent = [[1, 3, None, None],
-                           [0, 2, None, None],
-                           [1, 3, None, None],
-                           [0, 2, None, None]]
+        # self.your_agent = [[1, 3, None, None],
+        #                    [0, 2, None, None],
+        #                    [1, 3, None, None],
+        #                    [0, 2, None, None]]
 
         # self.your_agent = [[1, None, None, None],
         #                    [0, None, None, None],
@@ -154,8 +154,8 @@ class RoomPlacement:
             self.state_t_1 = 0
 
         # 更新される環境
-        # self.state_shape = [4, self.col, self.row] # my, your, other, site
-        self.state_shape = [7, self.col, self.row] # my, your0~3, other, site
+        self.state_shape = [4, self.col, self.row] # my, your, other, site
+        # self.state_shape = [7, self.col, self.row] # my, your0~3, other, site
         # self.state_shape = [6, self.col, self.row] # my, your0~3, other, site
         self.state_channel_0 = self.state_channel(0, next_flag=False)
         self.next_state_channel_0 = self.state_channel(0, next_flag=True)
@@ -1303,46 +1303,58 @@ class RoomPlacement:
 
         head_reward = np.zeros(len(self.reward_scheme), dtype=np.float32)
 
-        # # 単室接続時の報酬
-        # if self.your_agent[now_agent] in self.neighbor_search(now_agent):
-        #     head_reward[0] = self.reward_scheme['connect']
-        #
-        #     # アスペクト比報酬を判定
-        #     if self.aspect_search(now_agent) >= 0.8:
-        #         head_reward[1] = self.reward_scheme['shape']
-        #     else:
-        #         pass
-        #
-        #     # 面積報酬を判定
-        #     if self.room_downer <= self.area_search(now_agent) <= self.room_upper:
-        #         head_reward[2] = self.reward_scheme['area']
-        #     else:
-        #         pass
-        # else:
-        #     pass
-
-
         neighbors, _, _ = self.neighbor_search(now_agent)
 
-        # 接続であれば，衝突判定を観測
-        for n, your_list in enumerate(self.your_agent[now_agent]):
 
-            # 接続に単数ヘッド
-            if 'connect' in self.reward_name:
-                if your_list in neighbors:
-                    head_reward[self.reward_name.index('connect')] += self.reward_scheme['connect']
+        # 単室接続時の報酬(phase_2)
+        your_list = self.your_agent[now_agent][0]
 
-            # 接続に複数ヘッドあり
-            elif 'connect' not in self.reward_name:
-                if your_list in neighbors:
-                    if not self.limit_flag:
-                        head_reward[self.reward_name.index('connect' + str(n))] = self.reward_scheme['connect' + str(n)]
+        if 'connect' in self.reward_name:
+            if your_list in neighbors:
+                head_reward[self.reward_name.index('connect')] += self.reward_scheme['connect']
+
+                # アスペクト比報酬を判定
+                if 'shape' in self.reward_name:
+                    aspect, _, _ = self.aspect_search(now_agent)
+                    if aspect >= 0.8:
+                        head_reward[self.reward_name.index('shape')] = self.reward_scheme['shape']
                     else:
-                        # head_reward[self.reward_name.index('connect' + str(n))] = -0.1
-                        head_reward[self.reward_name.index('connect' + str(n))] = self.reward_scheme['connect' + str(n)]
+                        pass
 
-                elif your_list == None:
-                    head_reward[self.reward_name.index('connect' + str(n))] = None
+                # 面積報酬を判定
+                if 'area' in self.reward_name:
+                    if self.room_downer <= self.area_search(now_agent) <= self.room_upper:
+                        head_reward[self.reward_name.index('area')] = self.reward_scheme['area']
+                    else:
+                        pass
+            else:
+                pass
+
+
+
+        # # 接続であれば，衝突判定を観測(phase_3, 4)
+        # for n, your_list in enumerate(self.your_agent[now_agent]):
+        #
+        #     # 接続に単数ヘッド
+        #     if 'connect' in self.reward_name:
+        #         if your_list in neighbors:
+        #             head_reward[self.reward_name.index('connect')] += self.reward_scheme['connect']
+        #
+        #     # 接続に複数ヘッドあり
+        #     elif 'connect' not in self.reward_name:
+        #         if your_list in neighbors:
+        #             if not self.limit_flag:
+        #                 head_reward[self.reward_name.index('connect' + str(n))] = self.reward_scheme['connect' + str(n)]
+        #             else:
+        #                 # head_reward[self.reward_name.index('connect' + str(n))] = -0.1
+        #                 head_reward[self.reward_name.index('connect' + str(n))] = self.reward_scheme['connect' + str(n)]
+        #
+        #         elif your_list == None:
+        #             head_reward[self.reward_name.index('connect' + str(n))] = None
+
+
+
+
 
         # # 接続に関わらず衝突判定を観測
         # for n, your_list in enumerate(self.your_agent[now_agent]):
@@ -1377,6 +1389,7 @@ class RoomPlacement:
         #         head_reward[self.reward_name.index('connect' + str(n))] = None
 
 
+
         # 衝突報酬を判定
         # if 'collision' in self.reward_name:
         #     if self.limit_flag:
@@ -1395,17 +1408,16 @@ class RoomPlacement:
         #         head_reward[self.reward_name.index('shape')] = self.reward_scheme['shape']
 
 
-
-        # アスペクト比報酬を判定(0.8を基準に)
-        if 'shape' in self.reward_name:
-            aspect, _, _ = self.aspect_search(now_agent)
-            if aspect >= 0.8:
-                head_reward[self.reward_name.index('shape')] = self.reward_scheme['shape']
-
-        # 面積報酬を判定
-        if 'area' in self.reward_name:
-            if self.room_downer <= self.area_search(now_agent) <= self.room_upper:
-                head_reward[self.reward_name.index('area')] = self.reward_scheme['area']
+        # # アスペクト比報酬を判定(0.8を基準に)
+        # if 'shape' in self.reward_name:
+        #     aspect, _, _ = self.aspect_search(now_agent)
+        #     if aspect >= 0.8:
+        #         head_reward[self.reward_name.index('shape')] = self.reward_scheme['shape']
+        #
+        # # 面積報酬を判定
+        # if 'area' in self.reward_name:
+        #     if self.room_downer <= self.area_search(now_agent) <= self.room_upper:
+        #         head_reward[self.reward_name.index('area')] = self.reward_scheme['area']
 
 
         # # 有効寸法を判定

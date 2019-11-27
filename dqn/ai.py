@@ -324,7 +324,8 @@ class AI:
                             self.agg_w[index][0][0] = 5
 
         else:
-            raise ValueError("not use aggregator")
+            # raise ValueError("not use aggregator")
+            pass
 
     def get_TDerror(self):
         sum_TDerror = 0
