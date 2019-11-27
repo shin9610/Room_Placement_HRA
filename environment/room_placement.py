@@ -154,8 +154,8 @@ class RoomPlacement:
             self.state_t_1 = 0
 
         # 更新される環境
-        self.state_shape = [4, self.col, self.row] # my, your, other, site
-        # self.state_shape = [7, self.col, self.row] # my, your0~3, other, site
+        # self.state_shape = [4, self.col, self.row] # my, your, other, site
+        self.state_shape = [7, self.col, self.row] # my, your0~3, other, site
         # self.state_shape = [6, self.col, self.row] # my, your0~3, other, site
         self.state_channel_0 = self.state_channel(0, next_flag=False)
         self.next_state_channel_0 = self.state_channel(0, next_flag=True)
