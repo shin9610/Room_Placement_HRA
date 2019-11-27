@@ -20,7 +20,7 @@ epsilon: 1.0
 final_epsilon: 0.001
 test_epsilon: 0.001
 
-is_aggregator: False
+is_aggregator: True
 
 annealing_lr: False
 learning_rate: 0.001 # default
