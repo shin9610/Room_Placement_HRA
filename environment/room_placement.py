@@ -66,12 +66,12 @@ class RoomPlacement:
 
         # 室の初期設定
         if not test:
-            self.random_flag = False
+            self.random_flag = True
         else:
             self.random_flag = True
 
         self.init_random_iter = 30
-        self.evely_random_flag = False
+        self.evely_random_flag = True
         self.n_agents = 4
         self.room_col = 3
         self.room_row = 3
