@@ -36,7 +36,7 @@ update_freq: 20
 action_dim: 1
 num_units: 250
 
-draw_graph_freq: 10
+draw_graph_freq: 100
 draw_cv2_freq: 1000
 draw_movie_freq: 1000
 
