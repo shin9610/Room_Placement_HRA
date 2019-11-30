@@ -44,15 +44,15 @@ class RoomPlacement:
         # 報酬と終了条件の初期化
         self.reward = 0
         # self.reward_scheme = {'connect': +1.0, 'shape': +1.0, 'area': +1.0}
-        # self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0,
-        #                       'shape': +1.0, 'area': +1.0}
+        self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0,
+                              'shape': +1.0, 'area': +1.0}
         # self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0,
         #                       'shape': +1.5, 'area': +1.0}
         # self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0, 'collision': -0.01,
         #                       'shape': +1.5, 'area': +1.0}
         # self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0}
-        self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0,
-                              'area': +1.0}
+        # self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0,
+        #                       'area': +1.0}
         # self.reward_scheme = {'connect0': +1.0, 'connect1': +1.0, 'connect2': +1.0, 'connect3': +1.0,
         #                       'area': +1.0, 'Effective_dim': +1.0}
 
@@ -73,7 +73,7 @@ class RoomPlacement:
 
         self.init_random_iter = 30
         self.evely_random_flag = False
-        self.n_agents = 4
+        self.n_agents = 8
         self.room_col = 3
         self.room_row = 3
         self.room_size = self.room_col * self.room_row
@@ -106,19 +106,19 @@ class RoomPlacement:
         #                    [6, None, None, None]]
         #
         # バッファが4
-        # self.your_agent = [[1, None, None, None],
-        #                    [0, 2, None, None],
-        #                    [1, 3, None, None],
-        #                    [2, None, None, None],
-        #                    [6, 5, None, None],
-        #                    [4, 7, None, None],
-        #                    [4, None, None, None],
-        #                    [5, None, None, None]]
-
-        self.your_agent = [[1, 3, None, None],
+        self.your_agent = [[1, None, None, None],
                            [0, 2, None, None],
                            [1, 3, None, None],
-                           [0, 2, None, None]]
+                           [2, None, None, None],
+                           [6, 5, None, None],
+                           [4, 7, None, None],
+                           [4, None, None, None],
+                           [5, None, None, None]]
+
+        # self.your_agent = [[1, 3, None, None],
+        #                    [0, 2, None, None],
+        #                    [1, 3, None, None],
+        #                    [0, 2, None, None]]
 
         # self.your_agent = [[1, None, None, None],
         #                    [0, None, None, None],
@@ -156,7 +156,7 @@ class RoomPlacement:
 
         # 更新される環境
         # self.state_shape = [4, self.col, self.row] # my, your, other, site
-        self.state_shape = [7, self.col, self.row] # my, your0~3, other, site
+        self.state_shape = [12, self.col, self.row] # my, your0~3, other, site
         # self.state_shape = [6, self.col, self.row] # my, your0~3, other, site
         self.state_channel_0 = self.state_channel(0, next_flag=False)
         self.next_state_channel_0 = self.state_channel(0, next_flag=True)
@@ -724,15 +724,15 @@ class RoomPlacement:
         # state_tの更新
         start = time.time()
         if 0 <= action <= 3:
+            self.update_move(action, now_agent)
             # self.update_move(action, now_agent)
-            # self.update_move(action, now_agent)
-            self.update_move_rect(action, now_agent)
+            # self.update_move_rect(action, now_agent)
         elif 4 <= action <= 7:
-            # self.update_expand(action, now_agent)
-            self.update_expand_rect(action, now_agent)
+            self.update_expand(action, now_agent)
+            # self.update_expand_rect(action, now_agent)
         elif 8 <= action <= 11:
-            # self.update_reduction(action, now_agent)
-            self.update_reduction_rect(action, now_agent)
+            self.update_reduction(action, now_agent)
+            # self.update_reduction_rect(action, now_agent)
         elif action == 12:
             self.update_non(action)
 
@@ -1417,11 +1417,11 @@ class RoomPlacement:
         #         head_reward[self.reward_name.index('shape')] = self.reward_scheme['shape']
 
 
-        # # アスペクト比報酬を判定(0.8を基準に)
-        # if 'shape' in self.reward_name:
-        #     aspect, _, _ = self.aspect_search(now_agent)
-        #     if aspect >= 0.8:
-        #         head_reward[self.reward_name.index('shape')] = self.reward_scheme['shape']
+        # アスペクト比報酬を判定(0.8を基準に)
+        if 'shape' in self.reward_name:
+            aspect, _, _ = self.aspect_search(now_agent)
+            if aspect >= 0.8:
+                head_reward[self.reward_name.index('shape')] = self.reward_scheme['shape']
         #
         # 面積報酬を判定
         if 'area' in self.reward_name:
