@@ -86,4 +86,4 @@ def draw_line_graph_from_df(file_name, save_name, x_axis, y_axes=None, y_axes_bo
 
 
 set_seaborn()
-draw_line_graph_from_list('scores_4-2.csv', '4-2.png')
+draw_line_graph_from_list('scores_4-9.csv', '4-9.png')
