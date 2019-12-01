@@ -189,9 +189,9 @@ class DQNExperiment(object):
 
             # 接続報酬の0~3までの合計(nanを除く)
             scores_connect.append(sum([i for i in self.score_channel[0:4] if not np.isnan(i)]))
-            # scores_collision.append(self.score_channel[4])
-            scores_shape.append(self.score_channel[4])
-            scores_area.append(self.score_channel[5])
+            scores_collision.append(self.score_channel[4])
+            scores_shape.append(self.score_channel[5])
+            scores_area.append(self.score_channel[6])
             # scores_effective_len.append(self.score_channel[5])
 
             steps.append(self.last_episode_steps)
